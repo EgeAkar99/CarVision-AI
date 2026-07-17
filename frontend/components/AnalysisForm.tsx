@@ -1,26 +1,21 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import AnalysisResult from "./AnalysisResult";
-
-type AnalysisData = {
-  title: string;
-  year: number;
-  listingPrice: string;
-  marketPrice: string;
-  score: number;
-};
+import AnalysisResultCard from "./AnalysisResult";
+import type { AnalysisResult } from "../types/analysis";
 
 export default function AnalysisForm() {
   const [listingUrl, setListingUrl] = useState("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<AnalysisData | null>(null);
+  const [result, setResult] = useState<AnalysisResult | null>(null);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!listingUrl.trim()) {
+    const trimmedListingUrl = listingUrl.trim();
+
+    if (!trimmedListingUrl) {
       setMessage("Lütfen bir ilan linki gir.");
       setResult(null);
       return;
@@ -37,7 +32,7 @@ export default function AnalysisForm() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          listingUrl,
+          listingUrl: trimmedListingUrl,
         }),
       });
 
@@ -47,7 +42,7 @@ export default function AnalysisForm() {
         throw new Error(data.message || "Analiz başarısız oldu.");
       }
 
-      setResult(data.result);
+      setResult(data.result as AnalysisResult);
       setMessage("İlan analizi tamamlandı.");
     } catch (error) {
       const errorMessage =
@@ -93,7 +88,7 @@ export default function AnalysisForm() {
           </p>
 
           <div className="mt-4 space-y-2 text-sm text-zinc-400">
-            <p>İlan bilgileri backend'e gönderiliyor</p>
+            <p>İlan bilgileri backend&apos;e gönderiliyor</p>
             <p>Araç verileri hazırlanıyor</p>
             <p>Fiyat analizi oluşturuluyor</p>
             <p>AI raporu hazırlanıyor</p>
@@ -105,15 +100,7 @@ export default function AnalysisForm() {
         <p className="mt-4 text-center text-sm text-zinc-400">{message}</p>
       )}
 
-      {result && (
-        <AnalysisResult
-          title={result.title}
-          year={result.year}
-          listingPrice={result.listingPrice}
-          marketPrice={result.marketPrice}
-          score={result.score}
-        />
-      )}
+      {result && <AnalysisResultCard result={result} />}
     </div>
   );
 }

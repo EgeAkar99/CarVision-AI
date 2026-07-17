@@ -1,3 +1,6 @@
+import { analyzeVehicle } from "../../../services/ai";
+import { getVehicleFromListing } from "../../../services/vehicle";
+
 type AnalyzeRequest = {
   listingUrl: string;
 };
@@ -5,8 +8,9 @@ type AnalyzeRequest = {
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as AnalyzeRequest;
+    const listingUrl = body.listingUrl?.trim();
 
-    if (!body.listingUrl || !body.listingUrl.trim()) {
+    if (!listingUrl) {
       return Response.json(
         {
           success: false,
@@ -16,24 +20,25 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = {
-      title: "BMW 320i ED",
-      year: 2018,
-      listingPrice: "1.250.000 TL",
-      marketPrice: "1.285.000 TL",
-      score: 91,
-    };
+    const vehicle = await getVehicleFromListing(listingUrl);
+
+    const result = await analyzeVehicle(vehicle);
 
     return Response.json({
       success: true,
-      listingUrl: body.listingUrl,
+      listingUrl,
       result,
     });
-  } catch {
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Analiz sırasında bir hata oluştu.";
+
     return Response.json(
       {
         success: false,
-        message: "Analiz sırasında bir hata oluştu.",
+        message,
       },
       { status: 500 }
     );
