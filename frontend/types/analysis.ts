@@ -13,6 +13,30 @@ export type PriceEvaluation =
   | "expensive"
   | "very_expensive";
 
+export type ComparableVehicle = {
+  title: string;
+  brand: string;
+  model: string;
+  year: number;
+  mileage: number;
+  price: number;
+  city: string;
+  url?: string;
+};
+
+export type ComparableMarketAnalysis = {
+  comparableVehicles: ComparableVehicle[];
+
+  comparableCount: number;
+
+  lowestPrice: number;
+  highestPrice: number;
+  averagePrice: number;
+  medianPrice: number;
+
+  confidence: number;
+};
+
 export type AnalysisResult = {
   vehicle: Vehicle;
 
@@ -26,6 +50,8 @@ export type AnalysisResult = {
     differencePercentage: number;
     evaluation: PriceEvaluation;
   };
+
+  marketAnalysis: ComparableMarketAnalysis;
 
   chronicProblems: string[];
   advantages: string[];

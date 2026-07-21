@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "CarVision AI Sahibinden Aktarıcı",
+  "version": "0.1.0",
+  "description": "Açık Sahibinden ilanındaki araç bilgilerini ve emsal ilanları CarVision AI'a aktarır.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://www.sahibinden.com/*",
+    "https://*.sahibinden.com/*",
+    "http://localhost:3000/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "CarVision AI'a Aktar"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.sahibinden.com/*",
+        "https://*.sahibinden.com/*"
+      ],
+      "js": [
+        "content.js",
+        "comparableExtractor.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}
