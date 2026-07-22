@@ -78,11 +78,57 @@ function getLocationParts() {
   };
 }
 
+function normalizeImageUrl(value) {
+  if (!value) {
+    return "";
+  }
+
+  const candidate = value
+    .split(",")[0]
+    .trim()
+    .split(/\s+/)[0];
+
+  if (!candidate) {
+    return "";
+  }
+
+  try {
+    return new URL(candidate, location.href).href;
+  } catch {
+    return "";
+  }
+}
+
+function getImageSource(element) {
+  const candidates = [
+    element.getAttribute("data-src"),
+    element.getAttribute("data-original"),
+    element.getAttribute("data-lazy"),
+    element.getAttribute("src"),
+    element.getAttribute("srcset"),
+  ];
+
+  for (const candidate of candidates) {
+    const url = normalizeImageUrl(candidate || "");
+
+    if (
+      url &&
+      !url.startsWith("data:") &&
+      !url.includes("placeholder")
+    ) {
+      return url;
+    }
+  }
+
+  return "";
+}
+
 function getMainImage() {
   const selectors = [
     "#showcaseDetailMainImage",
     ".classifiedDetailMainPhoto img",
     ".classifiedDetailMainPhoto source",
+    ".classifiedDetailMainPhoto",
     "[data-testid='main-image'] img",
   ];
 
@@ -93,13 +139,10 @@ function getMainImage() {
       continue;
     }
 
-    const source =
-      element.getAttribute("src") ||
-      element.getAttribute("data-src") ||
-      element.getAttribute("srcset");
+    const source = getImageSource(element);
 
     if (source) {
-      return source.split(" ")[0];
+      return source;
     }
   }
 
@@ -110,19 +153,33 @@ function getImages() {
   const urls = new Set();
 
   const elements = document.querySelectorAll(
-    ".classifiedDetailMainPhoto img, " +
+    "#showcaseDetailMainImage, " +
+      ".classifiedDetailMainPhoto img, " +
+      ".classifiedDetailMainPhoto source, " +
       ".classifiedDetailPhotos img, " +
+      ".classifiedDetailPhotos source, " +
       ".classifiedDetailThumbList img, " +
-      "[data-testid='gallery'] img"
+      ".classifiedDetailThumbList source, " +
+      ".classifiedDetailThumbList a, " +
+      "ul[class*='thumb'] img, " +
+      "ul[class*='gallery'] img, " +
+      "[data-testid='gallery'] img, " +
+      "[data-testid='gallery'] source"
   );
 
   for (const element of elements) {
-    const source =
-      element.getAttribute("data-src") ||
-      element.getAttribute("src");
+    const source = getImageSource(element);
 
-    if (source && source.startsWith("http")) {
+    if (source) {
       urls.add(source);
+    }
+
+    const href = normalizeImageUrl(
+      element.getAttribute("href") || ""
+    );
+
+    if (href && /\.(jpg|jpeg|png|webp)(\?|$)/i.test(href)) {
+      urls.add(href);
     }
   }
 
@@ -132,10 +189,19 @@ function getImages() {
     urls.add(mainImage);
   }
 
-  return [...urls].slice(0, 20);
+  return [...urls].slice(0, 30);
 }
 
 const locationData = getLocationParts();
+const allImages = getImages();
+
+const interiorImages = allImages.filter((url) =>
+  /interior|kabin|kokpit|torpido|direksiyon|koltuk|vites/i.test(url)
+);
+
+const exteriorImages = allImages.filter(
+  (url) => !interiorImages.includes(url)
+);
 
 const vehicle = {
   url: location.href,
@@ -230,7 +296,17 @@ const vehicle = {
     getMainImage(),
 
   images:
-    getImages(),
+    allImages,
+
+  photoCount:
+    allImages.length,
+
+  thumbnailImages:
+    allImages.slice(0, 8),
+
+  interiorImages,
+
+  exteriorImages,
 };
 
 window.__CARVISION_DATA__ = vehicle;

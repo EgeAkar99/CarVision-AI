@@ -37,10 +37,56 @@ export type ComparableMarketAnalysis = {
   confidence: number;
 };
 
+export type DescriptionRiskLevel =
+  | "low"
+  | "medium"
+  | "high";
+
+export type DescriptionAnalysis = {
+  riskLevel: DescriptionRiskLevel;
+
+  riskScore: number;
+
+  detectedKeywords: string[];
+
+  detectedClaims: string[];
+
+  warnings: string[];
+
+  positiveSignals: string[];
+
+  summary: string;
+};
+
+export type PhotoConditionLevel =
+  | "good"
+  | "medium"
+  | "poor"
+  | "unknown";
+
+export type PhotoAnalysis = {
+  photoCount: number;
+
+  exteriorPhotoCount: number;
+
+  interiorPhotoCount: number;
+
+  coverageScore: number;
+
+  conditionLevel: PhotoConditionLevel;
+
+  warnings: string[];
+
+  positiveSignals: string[];
+
+  summary: string;
+};
+
 export type AnalysisResult = {
   vehicle: Vehicle;
 
   score: number;
+
   purchaseRecommendation: PurchaseRecommendation;
 
   priceAnalysis: {
@@ -53,11 +99,19 @@ export type AnalysisResult = {
 
   marketAnalysis: ComparableMarketAnalysis;
 
+  descriptionAnalysis: DescriptionAnalysis;
+
+  photoAnalysis: PhotoAnalysis;
+
   chronicProblems: string[];
+
   advantages: string[];
+
   disadvantages: string[];
 
   aiComment: string;
+
   negotiationAdvice: string;
+
   importantChecks: string[];
 };

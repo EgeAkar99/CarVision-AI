@@ -26,8 +26,18 @@ export type Vehicle = {
   plateNationality?: string;
   sellerType?: string;
   exchange?: string;
+
   mainImage?: string;
   images?: string[];
+
+  photoCount?: number;
+
+  thumbnailImages?: string[];
+
+  interiorImages?: string[];
+
+  exteriorImages?: string[];
+
   listingUrl?: string;
 };
 
@@ -70,11 +80,20 @@ export type BrowserExtensionVehicleInput = {
   plateNationality?: string;
   sellerType?: string;
   exchange?: string;
+
   mainImage?: string;
   images?: string[];
+
+  photoCount?: number;
+
+  thumbnailImages?: string[];
+
+  interiorImages?: string[];
+
+  exteriorImages?: string[];
+
   url?: string;
 };
-
 
 export type BrowserExtensionComparableInput = {
   title?: string;

@@ -83,7 +83,24 @@ button.addEventListener("click", async () => {
 
     const transferVehicle = {
       ...vehicle,
-      images: undefined,
+      images: Array.isArray(vehicle.images)
+        ? vehicle.images.slice(0, 30)
+        : [],
+      thumbnailImages: Array.isArray(vehicle.thumbnailImages)
+        ? vehicle.thumbnailImages.slice(0, 8)
+        : [],
+      interiorImages: Array.isArray(vehicle.interiorImages)
+        ? vehicle.interiorImages.slice(0, 15)
+        : [],
+      exteriorImages: Array.isArray(vehicle.exteriorImages)
+        ? vehicle.exteriorImages.slice(0, 15)
+        : [],
+      photoCount:
+        typeof vehicle.photoCount === "number"
+          ? vehicle.photoCount
+          : Array.isArray(vehicle.images)
+            ? vehicle.images.length
+            : 0,
       description:
         typeof vehicle.description === "string"
           ? vehicle.description.slice(0, 3000)

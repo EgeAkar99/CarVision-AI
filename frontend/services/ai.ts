@@ -645,7 +645,284 @@ function createImportantChecks(vehicle: VehicleData): string[] {
   return checks;
 }
 
+function analyzeDescription(
+  vehicle: VehicleData
+): AnalysisResult["descriptionAnalysis"] {
+  const description = normalizeText(
+    getString(vehicle, ["description", "aciklama"])
+  );
 
+  if (!description) {
+    return {
+      riskLevel: "medium",
+      riskScore: 45,
+      detectedKeywords: [],
+      detectedClaims: [],
+      warnings: [
+        "İlan açıklaması bulunmadığı için araç geçmişi yeterince değerlendirilemedi.",
+      ],
+      positiveSignals: [],
+      summary:
+        "İlan açıklaması bulunmuyor. Hasar, bakım ve kullanım geçmişi satıcıdan belgeleriyle istenmelidir.",
+    };
+  }
+
+  const riskPatterns = [
+    {
+      keywords: ["agir hasar", "pert", "hurda"],
+      warning:
+        "Ağır hasar veya ciddi kaza geçmişine işaret eden ifade tespit edildi.",
+      score: 35,
+    },
+    {
+      keywords: ["sase", "podye", "direk", "tavan"],
+      warning:
+        "Taşıyıcı veya kritik gövde parçalarıyla ilgili ifade tespit edildi.",
+      score: 24,
+    },
+    {
+      keywords: [
+        "motor yapildi",
+        "motor rektefiye",
+        "sandik motor",
+      ],
+      warning:
+        "Motorun geçmişte kapsamlı işlem gördüğüne dair ifade tespit edildi.",
+      score: 18,
+    },
+    {
+      keywords: ["degisen", "boyali", "lokal boya"],
+      warning:
+        "Kaporta işlemi veya değişen parça bilgisi tespit edildi.",
+      score: 10,
+    },
+    {
+      keywords: ["masrafli", "masraf vardir", "arizali"],
+      warning:
+        "Araçta mevcut veya yakın zamanda oluşabilecek masraf ifadesi tespit edildi.",
+      score: 20,
+    },
+    {
+      keywords: [
+        "taksi cikmasi",
+        "ticari cikmasi",
+        "kiralik cikmasi",
+      ],
+      warning:
+        "Yoğun kullanım geçmişine işaret eden ifade tespit edildi.",
+      score: 28,
+    },
+    {
+      keywords: ["kilometre dusurulmus", "km dusurulmus"],
+      warning:
+        "Kilometre güvenilirliğiyle ilgili ciddi risk ifadesi tespit edildi.",
+      score: 40,
+    },
+  ];
+
+  const positivePatterns = [
+    {
+      keywords: ["bakimlari yapildi", "bakimlari yeni"],
+      signal: "Bakımların yapıldığı belirtilmiş.",
+    },
+    {
+      keywords: ["yetkili servis", "servis bakimli"],
+      signal:
+        "Servis bakım geçmişiyle ilgili olumlu ifade bulunuyor.",
+    },
+    {
+      keywords: ["ekspertiz raporu", "ekspertiz mevcut"],
+      signal: "Ekspertiz raporu bulunduğu belirtilmiş.",
+    },
+    {
+      keywords: ["tramer yok", "hasar kaydi yok"],
+      signal: "Hasar kaydı olmadığı belirtilmiş.",
+    },
+    {
+      keywords: ["km orijinal", "kilometre orijinal"],
+      signal: "Kilometrenin orijinal olduğu belirtilmiş.",
+    },
+    {
+      keywords: ["tek el", "ilk sahibinden"],
+      signal:
+        "Sahiplik geçmişiyle ilgili olumlu ifade bulunuyor.",
+    },
+  ];
+
+  const detectedKeywords: string[] = [];
+  const detectedClaims: string[] = [];
+  const warnings: string[] = [];
+  const positiveSignals: string[] = [];
+
+  let riskScore = 15;
+
+  for (const pattern of riskPatterns) {
+    const matchedKeywords = pattern.keywords.filter((keyword) =>
+      description.includes(keyword)
+    );
+
+    if (matchedKeywords.length > 0) {
+      detectedKeywords.push(...matchedKeywords);
+      warnings.push(pattern.warning);
+      riskScore += pattern.score;
+    }
+  }
+
+  for (const pattern of positivePatterns) {
+    const matchedKeywords = pattern.keywords.filter((keyword) =>
+      description.includes(keyword)
+    );
+
+    if (matchedKeywords.length > 0) {
+      detectedKeywords.push(...matchedKeywords);
+      detectedClaims.push(pattern.signal);
+      positiveSignals.push(pattern.signal);
+      riskScore -= 5;
+    }
+  }
+
+  riskScore = Math.max(5, Math.min(100, riskScore));
+
+  const riskLevel =
+    riskScore >= 65
+      ? "high"
+      : riskScore >= 35
+        ? "medium"
+        : "low";
+
+  const summary =
+    riskLevel === "high"
+      ? "İlan açıklamasında ciddi risk ifadeleri bulunuyor. Ekspertiz ve belge kontrolü yapılmadan araç için karar verilmemelidir."
+      : riskLevel === "medium"
+        ? "İlan açıklamasında dikkat edilmesi gereken bazı ifadeler bulunuyor. Satıcı beyanları ekspertiz ve belgelerle doğrulanmalıdır."
+        : "İlan açıklamasında belirgin bir yüksek risk ifadesi bulunmadı. Yine de tüm bilgiler ekspertizle doğrulanmalıdır.";
+
+  return {
+    riskLevel,
+    riskScore,
+    detectedKeywords: [...new Set(detectedKeywords)],
+    detectedClaims: [...new Set(detectedClaims)],
+    warnings: [...new Set(warnings)],
+    positiveSignals: [...new Set(positiveSignals)],
+    summary,
+  };
+}
+
+function analyzePhotos(
+  vehicle: VehicleData
+): AnalysisResult["photoAnalysis"] {
+  const images = getArray(vehicle, ["images"]);
+  const interiorImages = getArray(vehicle, [
+    "interiorImages",
+  ]);
+  const exteriorImages = getArray(vehicle, [
+    "exteriorImages",
+  ]);
+
+  const storedPhotoCount = getNumber(
+    vehicle,
+    ["photoCount"],
+    images.length
+  );
+
+  const photoCount = Math.max(
+    storedPhotoCount,
+    images.length
+  );
+
+  const warnings: string[] = [];
+  const positiveSignals: string[] = [];
+
+  let coverageScore = 0;
+
+  if (photoCount >= 20) {
+    coverageScore += 50;
+    positiveSignals.push(
+      "İlanda aracı farklı açılardan değerlendirmeye yetecek sayıda fotoğraf bulunuyor."
+    );
+  } else if (photoCount >= 12) {
+    coverageScore += 40;
+    positiveSignals.push(
+      "İlanda genel değerlendirme için yeterli sayıda fotoğraf bulunuyor."
+    );
+  } else if (photoCount >= 6) {
+    coverageScore += 25;
+    warnings.push(
+      "Fotoğraf sayısı sınırlı olduğu için aracın tüm bölümleri değerlendirilemiyor."
+    );
+  } else {
+    coverageScore += 10;
+    warnings.push(
+      "Fotoğraf sayısı çok düşük. Araç kondisyonu fotoğraflardan güvenilir şekilde değerlendirilemez."
+    );
+  }
+
+  if (exteriorImages.length >= 6) {
+    coverageScore += 25;
+    positiveSignals.push(
+      "Dış görünüşü gösteren birden fazla fotoğraf tespit edildi."
+    );
+  } else if (exteriorImages.length > 0) {
+    coverageScore += 12;
+    warnings.push(
+      "Dış görünüş fotoğrafları aracın tüm yönlerini göstermiyor olabilir."
+    );
+  } else {
+    warnings.push(
+      "Dış görünüş fotoğrafları otomatik olarak sınıflandırılamadı."
+    );
+  }
+
+  if (interiorImages.length >= 3) {
+    coverageScore += 25;
+    positiveSignals.push(
+      "İç mekân kondisyonunu değerlendirebilecek fotoğraflar bulunuyor."
+    );
+  } else if (interiorImages.length > 0) {
+    coverageScore += 12;
+    warnings.push(
+      "İç mekân fotoğrafları sınırlı olduğu için yıpranma seviyesi net değerlendirilemeyebilir."
+    );
+  } else {
+    warnings.push(
+      "İç mekân fotoğrafı otomatik olarak tespit edilemedi."
+    );
+  }
+
+  coverageScore = Math.max(
+    0,
+    Math.min(100, Math.round(coverageScore))
+  );
+
+  const conditionLevel =
+    photoCount === 0
+      ? "unknown"
+      : coverageScore >= 75
+        ? "good"
+        : coverageScore >= 40
+          ? "medium"
+          : "poor";
+
+  const summary =
+    conditionLevel === "good"
+      ? "İlanın fotoğraf kapsamı genel kondisyon değerlendirmesi için yeterli görünüyor. Görseller yine de fiziksel ekspertizin yerini tutmaz."
+      : conditionLevel === "medium"
+        ? "Fotoğraflar aracın bazı bölümlerini değerlendirmeye imkân veriyor ancak eksik açılar nedeniyle kesin kondisyon sonucu çıkarılamaz."
+        : conditionLevel === "poor"
+          ? "Fotoğraf kapsamı yetersiz. Satıcıdan dış gövde, iç mekân, motor bölmesi, jantlar ve hasarlı bölgeler için ek fotoğraflar istenmelidir."
+          : "İlan fotoğrafları alınamadığı için görsel kondisyon değerlendirmesi yapılamadı.";
+
+  return {
+    photoCount,
+    exteriorPhotoCount: exteriorImages.length,
+    interiorPhotoCount: interiorImages.length,
+    coverageScore,
+    conditionLevel,
+    warnings: [...new Set(warnings)],
+    positiveSignals: [...new Set(positiveSignals)],
+    summary,
+  };
+}
 
 export async function analyzeVehicle(
   vehicle: Vehicle,
@@ -695,6 +972,12 @@ export async function analyzeVehicle(
     marketAnalysis.confidence
   );
 
+  const descriptionAnalysis =
+    analyzeDescription(vehicleData);
+
+  const photoAnalysis =
+    analyzePhotos(vehicleData);
+
   return {
     vehicle,
 
@@ -714,6 +997,10 @@ export async function analyzeVehicle(
     },
 
     marketAnalysis,
+
+    descriptionAnalysis,
+
+    photoAnalysis,
 
     chronicProblems:
       createChronicProblems(vehicleData),

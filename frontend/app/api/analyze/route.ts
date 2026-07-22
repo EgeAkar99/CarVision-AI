@@ -156,15 +156,45 @@ function validateBrowserExtensionVehicle(
     );
   }
 
-  const images = Array.isArray(vehicle.images)
-    ? vehicle.images
-        .filter(
-          (image): image is string =>
-            typeof image === "string" &&
-            image.trim().length > 0
-        )
-        .map((image) => image.trim())
-    : undefined;
+  function cleanImageArray(
+    value: string[] | undefined
+  ): string[] | undefined {
+    if (!Array.isArray(value)) {
+      return undefined;
+    }
+
+    const images = [
+      ...new Set(
+        value
+          .filter(
+            (image): image is string =>
+              typeof image === "string" &&
+              image.trim().length > 0
+          )
+          .map((image) => image.trim())
+      ),
+    ];
+
+    return images.length ? images : undefined;
+  }
+
+  const images = cleanImageArray(vehicle.images);
+  const thumbnailImages = cleanImageArray(
+    vehicle.thumbnailImages
+  );
+  const interiorImages = cleanImageArray(
+    vehicle.interiorImages
+  );
+  const exteriorImages = cleanImageArray(
+    vehicle.exteriorImages
+  );
+
+  const photoCount =
+    typeof vehicle.photoCount === "number" &&
+    Number.isFinite(vehicle.photoCount) &&
+    vehicle.photoCount >= 0
+      ? Math.floor(vehicle.photoCount)
+      : images?.length ?? 0;
 
   return {
     brand,
@@ -199,7 +229,11 @@ function validateBrowserExtensionVehicle(
     sellerType: cleanOptionalString(vehicle.sellerType),
     exchange: cleanOptionalString(vehicle.exchange),
     mainImage: cleanOptionalString(vehicle.mainImage),
-    images: images?.length ? images : undefined,
+    images,
+    photoCount,
+    thumbnailImages,
+    interiorImages,
+    exteriorImages,
     listingUrl: cleanOptionalString(vehicle.url),
   };
 }

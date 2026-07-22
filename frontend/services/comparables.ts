@@ -5,6 +5,7 @@ import type {
 import type { Vehicle } from "../types/vehicle";
 
 const DEFAULT_COMPARABLE_COUNT = 6;
+const MAX_COMPARABLE_COUNT = 30;
 
 function roundPrice(price: number): number {
   return Math.round(price / 5_000) * 5_000;
@@ -27,6 +28,17 @@ function calculateMedian(numbers: number[]): number {
   return sorted[middle];
 }
 
+function calculateAverage(numbers: number[]): number {
+  if (numbers.length === 0) {
+    return 0;
+  }
+
+  return Math.round(
+    numbers.reduce((total, number) => total + number, 0) /
+      numbers.length
+  );
+}
+
 function normalizeText(value: string): string {
   return value
     .toLocaleLowerCase("tr-TR")
@@ -36,54 +48,185 @@ function normalizeText(value: string): string {
     .replaceAll("ü", "u")
     .replaceAll("ö", "o")
     .replaceAll("ç", "c")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
     .trim();
+}
+
+function tokenize(value: string): string[] {
+  return normalizeText(value)
+    .split(" ")
+    .filter((token) => token.length > 1);
+}
+
+function calculateTokenSimilarity(
+  firstValue: string,
+  secondValue: string
+): number {
+  const firstTokens = tokenize(firstValue);
+  const secondTokens = tokenize(secondValue);
+
+  if (firstTokens.length === 0 || secondTokens.length === 0) {
+    return 0;
+  }
+
+  const firstSet = new Set(firstTokens);
+  const secondSet = new Set(secondTokens);
+
+  const commonTokens = [...firstSet].filter((token) =>
+    secondSet.has(token)
+  );
+
+  const totalUniqueTokens = new Set([
+    ...firstTokens,
+    ...secondTokens,
+  ]).size;
+
+  return totalUniqueTokens > 0
+    ? commonTokens.length / totalUniqueTokens
+    : 0;
 }
 
 function isValidComparable(
   comparable: ComparableVehicle
 ): boolean {
+  const currentYear = new Date().getFullYear();
+
   return (
+    Boolean(comparable.title.trim()) &&
     Boolean(comparable.brand.trim()) &&
     Boolean(comparable.model.trim()) &&
     Number.isFinite(comparable.year) &&
-    comparable.year > 1950 &&
+    comparable.year >= 1950 &&
+    comparable.year <= currentYear + 1 &&
     Number.isFinite(comparable.mileage) &&
     comparable.mileage >= 0 &&
+    comparable.mileage <= 2_000_000 &&
     Number.isFinite(comparable.price) &&
-    comparable.price > 0
+    comparable.price >= 50_000
   );
 }
 
-function isSimilarVehicle(
+function calculateSimilarityScore(
   vehicle: Vehicle,
   comparable: ComparableVehicle
-): boolean {
-  const sameBrand =
-    normalizeText(vehicle.brand) ===
-    normalizeText(comparable.brand);
+): number {
+  const normalizedVehicleBrand = normalizeText(vehicle.brand);
+  const normalizedComparableBrand = normalizeText(
+    comparable.brand
+  );
 
-  const sameModel =
-    normalizeText(vehicle.model) ===
-    normalizeText(comparable.model);
+  if (
+    normalizedVehicleBrand !== normalizedComparableBrand
+  ) {
+    return 0;
+  }
+
+  let score = 40;
+
+  const modelSimilarity = calculateTokenSimilarity(
+    vehicle.model,
+    comparable.model
+  );
+
+  if (modelSimilarity >= 0.8) {
+    score += 30;
+  } else if (modelSimilarity >= 0.5) {
+    score += 22;
+  } else if (modelSimilarity >= 0.25) {
+    score += 12;
+  } else {
+    return 0;
+  }
 
   const yearDifference = Math.abs(
     vehicle.year - comparable.year
   );
+
+  if (yearDifference === 0) {
+    score += 15;
+  } else if (yearDifference === 1) {
+    score += 11;
+  } else if (yearDifference === 2) {
+    score += 6;
+  } else if (yearDifference === 3) {
+    score += 2;
+  } else {
+    return 0;
+  }
 
   const mileageDifference = Math.abs(
     vehicle.mileage - comparable.mileage
   );
 
   const maximumMileageDifference = Math.max(
-    60_000,
-    vehicle.mileage * 0.35
+    80_000,
+    vehicle.mileage * 0.45
   );
 
+  if (mileageDifference > maximumMileageDifference) {
+    return 0;
+  }
+
+  const mileageSimilarity =
+    1 -
+    mileageDifference /
+      Math.max(maximumMileageDifference, 1);
+
+  score += Math.round(mileageSimilarity * 15);
+
+  return Math.min(100, Math.round(score));
+}
+
+function removeDuplicateComparables(
+  comparables: ComparableVehicle[]
+): ComparableVehicle[] {
+  const uniqueComparables = new Map<
+    string,
+    ComparableVehicle
+  >();
+
+  for (const comparable of comparables) {
+    const key = comparable.url
+      ? comparable.url
+      : [
+          normalizeText(comparable.title),
+          comparable.year,
+          comparable.mileage,
+          comparable.price,
+        ].join("-");
+
+    if (!uniqueComparables.has(key)) {
+      uniqueComparables.set(key, comparable);
+    }
+  }
+
+  return [...uniqueComparables.values()];
+}
+
+function calculateQuartile(
+  sortedNumbers: number[],
+  position: number
+): number {
+  if (sortedNumbers.length === 0) {
+    return 0;
+  }
+
+  const index =
+    (sortedNumbers.length - 1) * position;
+
+  const lowerIndex = Math.floor(index);
+  const upperIndex = Math.ceil(index);
+
+  if (lowerIndex === upperIndex) {
+    return sortedNumbers[lowerIndex];
+  }
+
+  const weight = index - lowerIndex;
+
   return (
-    sameBrand &&
-    sameModel &&
-    yearDifference <= 2 &&
-    mileageDifference <= maximumMileageDifference
+    sortedNumbers[lowerIndex] * (1 - weight) +
+    sortedNumbers[upperIndex] * weight
   );
 }
 
@@ -94,20 +237,84 @@ function removePriceOutliers(
     return comparableVehicles;
   }
 
-  const prices = comparableVehicles
+  const sortedPrices = comparableVehicles
     .map((vehicle) => vehicle.price)
     .sort((a, b) => a - b);
 
-  const priceMedian = calculateMedian(prices);
+  const firstQuartile = calculateQuartile(
+    sortedPrices,
+    0.25
+  );
 
-  const minimumAllowedPrice = priceMedian * 0.65;
-  const maximumAllowedPrice = priceMedian * 1.35;
+  const thirdQuartile = calculateQuartile(
+    sortedPrices,
+    0.75
+  );
 
-  return comparableVehicles.filter(
+  const interquartileRange =
+    thirdQuartile - firstQuartile;
+
+  const minimumAllowedPrice =
+    firstQuartile - interquartileRange * 1.5;
+
+  const maximumAllowedPrice =
+    thirdQuartile + interquartileRange * 1.5;
+
+  const filtered = comparableVehicles.filter(
     (vehicle) =>
       vehicle.price >= minimumAllowedPrice &&
       vehicle.price <= maximumAllowedPrice
   );
+
+  return filtered.length >= 3
+    ? filtered
+    : comparableVehicles;
+}
+
+function calculatePriceConsistency(
+  comparables: ComparableVehicle[]
+): number {
+  if (comparables.length < 2) {
+    return 0;
+  }
+
+  const prices = comparables.map(
+    (comparable) => comparable.price
+  );
+
+  const averagePrice = calculateAverage(prices);
+
+  if (averagePrice <= 0) {
+    return 0;
+  }
+
+  const averageDeviation =
+    prices.reduce(
+      (total, price) =>
+        total + Math.abs(price - averagePrice),
+      0
+    ) / prices.length;
+
+  const deviationRate =
+    averageDeviation / averagePrice;
+
+  if (deviationRate <= 0.05) {
+    return 15;
+  }
+
+  if (deviationRate <= 0.1) {
+    return 12;
+  }
+
+  if (deviationRate <= 0.15) {
+    return 8;
+  }
+
+  if (deviationRate <= 0.22) {
+    return 4;
+  }
+
+  return 0;
 }
 
 function calculateConfidence(
@@ -118,48 +325,38 @@ function calculateConfidence(
     return 0;
   }
 
-  let confidence = 35;
+  let confidence = 20;
 
   confidence += Math.min(
-    comparableVehicles.length * 7,
-    35
+    comparableVehicles.length * 6,
+    36
   );
 
-  const averageYearDifference =
+  const averageSimilarityScore =
     comparableVehicles.reduce(
       (total, comparable) =>
         total +
-        Math.abs(vehicle.year - comparable.year),
+        calculateSimilarityScore(vehicle, comparable),
       0
     ) / comparableVehicles.length;
 
-  const averageMileageDifference =
-    comparableVehicles.reduce(
-      (total, comparable) =>
-        total +
-        Math.abs(
-          vehicle.mileage - comparable.mileage
-        ),
-      0
-    ) / comparableVehicles.length;
-
-  if (averageYearDifference <= 0.5) {
-    confidence += 12;
-  } else if (averageYearDifference <= 1) {
-    confidence += 8;
+  if (averageSimilarityScore >= 90) {
+    confidence += 24;
+  } else if (averageSimilarityScore >= 80) {
+    confidence += 20;
+  } else if (averageSimilarityScore >= 70) {
+    confidence += 15;
+  } else if (averageSimilarityScore >= 60) {
+    confidence += 10;
   } else {
-    confidence += 3;
+    confidence += 4;
   }
 
-  if (averageMileageDifference <= 20_000) {
-    confidence += 12;
-  } else if (averageMileageDifference <= 40_000) {
-    confidence += 8;
-  } else {
-    confidence += 3;
-  }
+  confidence += calculatePriceConsistency(
+    comparableVehicles
+  );
 
-  return Math.min(95, Math.round(confidence));
+  return Math.min(97, Math.round(confidence));
 }
 
 function createFallbackComparables(
@@ -214,22 +411,42 @@ export function createComparableMarketAnalysis(
   estimatedMarketPrice: number,
   sourceComparables: ComparableVehicle[] = []
 ): ComparableMarketAnalysis {
-  const validSourceComparables = sourceComparables
-    .filter(isValidComparable)
-    .filter((comparable) =>
-      isSimilarVehicle(vehicle, comparable)
-    );
+  const scoredComparables = removeDuplicateComparables(
+    sourceComparables.filter(isValidComparable)
+  )
+    .map((comparable) => ({
+      comparable,
+      similarityScore: calculateSimilarityScore(
+        vehicle,
+        comparable
+      ),
+    }))
+    .filter(
+      ({ similarityScore }) => similarityScore >= 60
+    )
+    .sort(
+      (first, second) =>
+        second.similarityScore -
+        first.similarityScore
+    )
+    .slice(0, MAX_COMPARABLE_COUNT);
+
+  const similarComparables = scoredComparables.map(
+    ({ comparable }) => comparable
+  );
 
   const filteredSourceComparables =
-    removePriceOutliers(validSourceComparables);
+    removePriceOutliers(similarComparables);
 
-  const comparableVehicles =
-    filteredSourceComparables.length > 0
-      ? filteredSourceComparables
-      : createFallbackComparables(
-          vehicle,
-          estimatedMarketPrice
-        ).slice(0, DEFAULT_COMPARABLE_COUNT);
+  const hasRealComparables =
+    filteredSourceComparables.length > 0;
+
+  const comparableVehicles = hasRealComparables
+    ? filteredSourceComparables
+    : createFallbackComparables(
+        vehicle,
+        estimatedMarketPrice
+      ).slice(0, DEFAULT_COMPARABLE_COUNT);
 
   const prices = comparableVehicles.map(
     (comparable) => comparable.price
@@ -247,28 +464,18 @@ export function createComparableMarketAnalysis(
     };
   }
 
-  const averagePrice = Math.round(
-    prices.reduce(
-      (total, price) => total + price,
-      0
-    ) / prices.length
-  );
-
-  const confidence =
-    filteredSourceComparables.length > 0
-      ? calculateConfidence(
-          vehicle,
-          filteredSourceComparables
-        )
-      : 55;
-
   return {
     comparableVehicles,
     comparableCount: comparableVehicles.length,
     lowestPrice: Math.min(...prices),
     highestPrice: Math.max(...prices),
-    averagePrice,
+    averagePrice: calculateAverage(prices),
     medianPrice: calculateMedian(prices),
-    confidence,
+    confidence: hasRealComparables
+      ? calculateConfidence(
+          vehicle,
+          filteredSourceComparables
+        )
+      : 45,
   };
 }

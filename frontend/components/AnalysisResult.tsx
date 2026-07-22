@@ -47,6 +47,8 @@ export default function AnalysisResult({
     purchaseRecommendation,
     priceAnalysis,
     marketAnalysis,
+    descriptionAnalysis,
+    photoAnalysis,
     chronicProblems,
     advantages,
     disadvantages,
@@ -377,6 +379,264 @@ export default function AnalysisResult({
             </div>
           </div>
         )}
+      </div>
+
+
+      <div className="border-t border-zinc-800 p-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-medium text-emerald-400">
+              İlan Açıklaması Analizi
+            </p>
+
+            <h3 className="mt-1 text-xl font-semibold text-white">
+              Risk ve Satıcı Beyanı Değerlendirmesi
+            </h3>
+          </div>
+
+          <div
+            className={`w-fit rounded-full px-4 py-2 text-sm font-semibold ${
+              descriptionAnalysis.riskLevel === "high"
+                ? "bg-red-500/15 text-red-400"
+                : descriptionAnalysis.riskLevel === "medium"
+                  ? "bg-amber-500/15 text-amber-400"
+                  : "bg-emerald-500/15 text-emerald-400"
+            }`}
+          >
+            {descriptionAnalysis.riskLevel === "high"
+              ? "Yüksek Risk"
+              : descriptionAnalysis.riskLevel === "medium"
+                ? "Orta Risk"
+                : "Düşük Risk"}
+          </div>
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+          <article className="rounded-xl border border-zinc-800 bg-black p-5">
+            <p className="text-sm text-zinc-500">
+              Açıklama Risk Puanı
+            </p>
+
+            <p className="mt-2 text-2xl font-bold text-white">
+              {descriptionAnalysis.riskScore} / 100
+            </p>
+
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-zinc-800">
+              <div
+                className={`h-full rounded-full ${
+                  descriptionAnalysis.riskLevel === "high"
+                    ? "bg-red-500"
+                    : descriptionAnalysis.riskLevel === "medium"
+                      ? "bg-amber-500"
+                      : "bg-emerald-500"
+                }`}
+                style={{
+                  width: `${descriptionAnalysis.riskScore}%`,
+                }}
+              />
+            </div>
+          </article>
+
+          <article className="rounded-xl border border-zinc-800 bg-black p-5">
+            <p className="text-sm text-zinc-500">
+              Genel Değerlendirme
+            </p>
+
+            <p className="mt-3 text-sm leading-6 text-zinc-300">
+              {descriptionAnalysis.summary}
+            </p>
+          </article>
+        </div>
+
+        {descriptionAnalysis.warnings.length > 0 && (
+          <div className="mt-5 rounded-xl border border-red-500/20 bg-red-500/5 p-5">
+            <h4 className="font-semibold text-red-400">
+              Tespit Edilen Riskler
+            </h4>
+
+            <ul className="mt-3 space-y-2 text-sm text-zinc-300">
+              {descriptionAnalysis.warnings.map((warning, index) => (
+                <li
+                  key={`description-warning-${index}`}
+                  className="flex gap-3"
+                >
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
+                  <span>{warning}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {descriptionAnalysis.positiveSignals.length > 0 && (
+          <div className="mt-5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5">
+            <h4 className="font-semibold text-emerald-400">
+              Olumlu Satıcı Beyanları
+            </h4>
+
+            <ul className="mt-3 space-y-2 text-sm text-zinc-300">
+              {descriptionAnalysis.positiveSignals.map((signal, index) => (
+                <li
+                  key={`description-signal-${index}`}
+                  className="flex gap-3"
+                >
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
+                  <span>{signal}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {descriptionAnalysis.detectedKeywords.length > 0 && (
+          <div className="mt-5">
+            <p className="text-sm font-semibold text-zinc-300">
+              Tespit Edilen İfadeler
+            </p>
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              {descriptionAnalysis.detectedKeywords.map((keyword) => (
+                <span
+                  key={keyword}
+                  className="rounded-full border border-zinc-700 bg-black px-3 py-1 text-xs text-zinc-400"
+                >
+                  {keyword}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="border-t border-zinc-800 p-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-medium text-emerald-400">
+              Fotoğraf Analizi
+            </p>
+
+            <h3 className="mt-1 text-xl font-semibold text-white">
+              Görsel Kapsam ve Kondisyon Değerlendirmesi
+            </h3>
+          </div>
+
+          <div
+            className={`w-fit rounded-full px-4 py-2 text-sm font-semibold ${
+              photoAnalysis.conditionLevel === "good"
+                ? "bg-emerald-500/15 text-emerald-400"
+                : photoAnalysis.conditionLevel === "medium"
+                  ? "bg-amber-500/15 text-amber-400"
+                  : photoAnalysis.conditionLevel === "poor"
+                    ? "bg-red-500/15 text-red-400"
+                    : "bg-zinc-700 text-zinc-300"
+            }`}
+          >
+            {photoAnalysis.conditionLevel === "good"
+              ? "İyi Kapsam"
+              : photoAnalysis.conditionLevel === "medium"
+                ? "Orta Kapsam"
+                : photoAnalysis.conditionLevel === "poor"
+                  ? "Yetersiz Kapsam"
+                  : "Değerlendirilemedi"}
+          </div>
+        </div>
+
+        <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <MarketStatCard
+            label="Toplam Fotoğraf"
+            value={`${photoAnalysis.photoCount}`}
+          />
+
+          <MarketStatCard
+            label="Dış Mekân"
+            value={`${photoAnalysis.exteriorPhotoCount}`}
+          />
+
+          <MarketStatCard
+            label="İç Mekân"
+            value={`${photoAnalysis.interiorPhotoCount}`}
+          />
+
+          <MarketStatCard
+            label="Kapsam Puanı"
+            value={`${photoAnalysis.coverageScore} / 100`}
+            highlighted
+          />
+        </div>
+
+        <article className="mt-5 rounded-xl border border-zinc-800 bg-black p-5">
+          <p className="text-sm text-zinc-500">
+            Genel Fotoğraf Değerlendirmesi
+          </p>
+
+          <p className="mt-3 text-sm leading-6 text-zinc-300">
+            {photoAnalysis.summary}
+          </p>
+        </article>
+
+        {photoAnalysis.warnings.length > 0 && (
+          <div className="mt-5 rounded-xl border border-amber-500/20 bg-amber-500/5 p-5">
+            <h4 className="font-semibold text-amber-400">
+              Fotoğraf Eksikleri
+            </h4>
+
+            <ul className="mt-3 space-y-2 text-sm text-zinc-300">
+              {photoAnalysis.warnings.map((warning, index) => (
+                <li
+                  key={`photo-warning-${index}`}
+                  className="flex gap-3"
+                >
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
+                  <span>{warning}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {photoAnalysis.positiveSignals.length > 0 && (
+          <div className="mt-5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5">
+            <h4 className="font-semibold text-emerald-400">
+              Olumlu Fotoğraf Bulguları
+            </h4>
+
+            <ul className="mt-3 space-y-2 text-sm text-zinc-300">
+              {photoAnalysis.positiveSignals.map((signal, index) => (
+                <li
+                  key={`photo-signal-${index}`}
+                  className="flex gap-3"
+                >
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
+                  <span>{signal}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {vehicle.thumbnailImages &&
+          vehicle.thumbnailImages.length > 0 && (
+            <div className="mt-5">
+              <p className="text-sm font-semibold text-zinc-300">
+                İlan Fotoğrafları
+              </p>
+
+              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {vehicle.thumbnailImages.map((image, index) => (
+                  <div
+                    key={`${image}-${index}`}
+                    className="overflow-hidden rounded-xl border border-zinc-800 bg-black"
+                  >
+                    <img
+                      src={image}
+                      alt={`Araç fotoğrafı ${index + 1}`}
+                      className="h-32 w-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
       </div>
 
       <div className="grid grid-cols-1 gap-6 px-6 pb-6 lg:grid-cols-2">
