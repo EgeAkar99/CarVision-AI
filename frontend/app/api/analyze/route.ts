@@ -289,7 +289,10 @@ function validateBrowserExtensionComparables(
         comparable.title.length > 0 &&
         comparable.year >= 1900 &&
         comparable.mileage >= 0 &&
-        comparable.price > 0
+        comparable.price > 0 &&
+        (!vehicle.listingUrl ||
+          !comparable.url ||
+          comparable.url !== vehicle.listingUrl)
     )
     .slice(0, 50);
 }
@@ -328,6 +331,12 @@ export async function POST(request: Request) {
       comparables = validateBrowserExtensionComparables(
         body.comparables,
         vehicle
+      );
+
+      console.log(
+        "[Comparables]",
+        comparables.length,
+        comparables.slice(0, 5)
       );
     } else {
       return Response.json(
