@@ -4,6 +4,8 @@ import type {
 } from "../types/analysis";
 import type { Vehicle } from "../types/vehicle";
 import { createComparableMarketAnalysis } from "./comparables";
+import { getVehicleSpecificRisks } from "./vehicleRiskEngine";
+import { analyzeEquipment } from "./equipment";
 import { createComparableProvider } from "../providers/comparableProviderFactory";
 
 type VehicleData = Vehicle & Record<string, unknown>;
@@ -978,6 +980,12 @@ export async function analyzeVehicle(
   const photoAnalysis =
     analyzePhotos(vehicleData);
 
+  const vehicleSpecificRisks =
+    getVehicleSpecificRisks(vehicle);
+
+  const equipmentAnalysis =
+    analyzeEquipment(vehicle);
+
   return {
     vehicle,
 
@@ -1002,12 +1010,27 @@ export async function analyzeVehicle(
 
     photoAnalysis,
 
-    chronicProblems:
-      createChronicProblems(vehicleData),
+    chronicProblems: [
+      ...createChronicProblems(vehicleData),
+      ...vehicleSpecificRisks.map(
+        (risk) => `${risk.title}: ${risk.description}`
+      ),
+    ].filter(
+      (item, index, items) =>
+        items.indexOf(item) === index
+    ),
 
-    advantages: createAdvantages(
-      vehicleData,
-      differencePercentage
+    advantages: [
+      ...createAdvantages(
+        vehicleData,
+        differencePercentage
+      ),
+      ...equipmentAnalysis.flatMap(
+        (equipment) => equipment.positiveSignals
+      ),
+    ].filter(
+      (item, index, items) =>
+        items.indexOf(item) === index
     ),
 
     disadvantages:
@@ -1026,7 +1049,17 @@ export async function analyzeVehicle(
       score
     ),
 
-    importantChecks:
-      createImportantChecks(vehicleData),
+    importantChecks: [
+      ...createImportantChecks(vehicleData),
+      ...vehicleSpecificRisks.flatMap(
+        (risk) => risk.checks
+      ),
+      ...equipmentAnalysis.flatMap(
+        (equipment) => equipment.checks
+      ),
+    ].filter(
+      (item, index, items) =>
+        items.indexOf(item) === index
+    ),
   };
 }
