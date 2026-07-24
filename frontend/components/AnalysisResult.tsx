@@ -171,12 +171,15 @@ export default function AnalysisResult({
     },
   ].filter((detail) => detail.value);
 
-  return (
-    <section className="mt-8 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900">
-      <div className="border-b border-zinc-800 p-6">
+  const sectionStyle =
+  "glass-card rounded-[26px] border border-white/10 p-5 shadow-xl shadow-slate-950/10 transition-all duration-300 hover:border-emerald-400/20 hover:shadow-emerald-500/5 sm:p-6";
+
+return (
+    <section className="glass-card mt-8 overflow-hidden rounded-[22px] sm:mt-10 sm:rounded-[28px]">
+      <div className="border-b border-white/5 p-4 sm:p-6">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[320px_1fr]">
           {vehicle.mainImage && (
-            <div className="overflow-hidden rounded-xl border border-zinc-800 bg-black">
+            <div className="overflow-hidden rounded-xl border border-slate-600/30 bg-slate-950/45">
               <img
                 src={vehicle.mainImage}
                 alt={`${vehicle.brand} ${vehicle.model}`}
@@ -192,27 +195,27 @@ export default function AnalysisResult({
                   AI Analiz Sonucu
                 </p>
 
-                <h2 className="mt-2 text-2xl font-bold text-white">
+                <h2 className="mt-2 text-xl font-bold text-white sm:text-2xl">
                   {vehicle.year} {vehicle.brand} {vehicle.model}
                 </h2>
 
                 {vehicle.title && (
-                  <p className="mt-2 text-sm leading-6 text-zinc-400">
+                  <p className="mt-2 text-sm leading-6 text-slate-300">
                     {vehicle.title}
                   </p>
                 )}
 
-                <p className="mt-3 text-sm text-zinc-400">
+                <p className="mt-3 text-sm text-slate-300">
                   {formatMileage(vehicle.mileage)} km · {vehicle.fuel} ·{" "}
                   {vehicle.transmission}
                 </p>
 
-                <p className="mt-1 text-sm text-zinc-500">
+                <p className="mt-1 text-sm text-slate-400">
                   {location || "Konum bilinmiyor"}
                 </p>
               </div>
 
-              <span className="w-fit rounded-full bg-emerald-500/15 px-4 py-2 text-sm font-semibold text-emerald-400">
+              <span className="primary-glow w-fit rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-sm font-semibold text-emerald-300">
                 {
                   purchaseRecommendationLabels[
                     purchaseRecommendation
@@ -226,7 +229,7 @@ export default function AnalysisResult({
                 href={vehicle.listingUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="w-fit rounded-lg border border-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-300 transition hover:border-emerald-500 hover:text-emerald-400"
+                className="w-fit rounded-lg border border-slate-500/35 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-emerald-500 hover:text-emerald-400"
               >
                 İlanı Aç
               </a>
@@ -235,8 +238,8 @@ export default function AnalysisResult({
         </div>
       </div>
 
-      <div className="border-b border-zinc-800 p-6">
-        <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5">
+      <div className="border-b border-white/5 p-4 sm:p-6">
+        <div className="glass-card rounded-3xl border-emerald-400/20 bg-emerald-400/5 p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-sm font-medium text-emerald-400">
@@ -249,29 +252,29 @@ export default function AnalysisResult({
             </div>
 
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <div className="rounded-xl border border-zinc-800 bg-black px-4 py-3">
-                <p className="text-xs text-zinc-500">Genel Puan</p>
+              <div className="glass-card rounded-2xl px-4 py-3">
+                <p className="text-xs text-slate-400">Genel Puan</p>
                 <p className="mt-1 font-bold text-white">
                   {score} / 100
                 </p>
               </div>
 
-              <div className="rounded-xl border border-zinc-800 bg-black px-4 py-3">
-                <p className="text-xs text-zinc-500">Risk</p>
+              <div className="glass-card rounded-2xl px-4 py-3">
+                <p className="text-xs text-slate-400">Risk</p>
                 <p className="mt-1 font-bold text-white">
                   {riskLabel}
                 </p>
               </div>
 
-              <div className="rounded-xl border border-zinc-800 bg-black px-4 py-3">
-                <p className="text-xs text-zinc-500">Fiyat Avantajı</p>
+              <div className="glass-card rounded-2xl px-4 py-3">
+                <p className="text-xs text-slate-400">Fiyat Avantajı</p>
                 <p className="mt-1 font-bold text-white">
                   {competitivePositioning.priceAdvantageScore} / 100
                 </p>
               </div>
 
-              <div className="rounded-xl border border-zinc-800 bg-black px-4 py-3">
-                <p className="text-xs text-zinc-500">Pazarlık Gücü</p>
+              <div className="glass-card rounded-2xl px-4 py-3">
+                <p className="text-xs text-slate-400">Pazarlık Gücü</p>
                 <p className="mt-1 font-bold text-white">
                   %{negotiationAnalysis.negotiationPower}
                 </p>
@@ -280,7 +283,7 @@ export default function AnalysisResult({
           </div>
 
           {quickWarnings.length > 0 && (
-            <div className="mt-5 border-t border-zinc-800 pt-5">
+            <div className="mt-5 border-t border-slate-600/30 pt-5">
               <p className="text-sm font-semibold text-white">
                 En Önemli Uyarılar
               </p>
@@ -289,7 +292,7 @@ export default function AnalysisResult({
                 {quickWarnings.map((warning, index) => (
                   <div
                     key={`quick-warning-${index}`}
-                    className="flex gap-3 rounded-lg border border-zinc-800 bg-black p-3 text-sm leading-6 text-zinc-400"
+                    className="flex gap-3 rounded-lg border border-slate-600/30 bg-slate-950/45 p-3 text-sm leading-6 text-slate-300"
                   >
                     <span className="font-semibold text-amber-400">
                       {index + 1}.
@@ -304,18 +307,18 @@ export default function AnalysisResult({
       </div>
 
       {vehicleDetails.length > 0 && (
-        <div className="border-b border-zinc-800 p-6">
+        <div className="border-b border-white/5 p-4 sm:p-6">
           <h3 className="text-lg font-semibold text-white">
             Araç Detayları
           </h3>
 
-          <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {vehicleDetails.map((detail) => (
               <div
                 key={detail.label}
-                className="rounded-xl border border-zinc-800 bg-black p-4"
+                className="glass-card rounded-2xl p-4"
               >
-                <p className="text-xs text-zinc-500">
+                <p className="text-xs text-slate-400">
                   {detail.label}
                 </p>
 
@@ -328,17 +331,17 @@ export default function AnalysisResult({
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 p-6 md:grid-cols-4">
-        <div className="rounded-xl border border-zinc-800 bg-black p-4">
-          <p className="text-sm text-zinc-500">İlan Fiyatı</p>
+      <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 sm:p-6 lg:grid-cols-4">
+        <div className="glass-card rounded-2xl p-4">
+          <p className="text-sm text-slate-400">İlan Fiyatı</p>
 
           <p className="mt-2 text-xl font-bold text-white">
             {formatPrice(priceAnalysis.listingPrice)}
           </p>
         </div>
 
-        <div className="rounded-xl border border-zinc-800 bg-black p-4">
-          <p className="text-sm text-zinc-500">
+        <div className="glass-card rounded-2xl p-4">
+          <p className="text-sm text-slate-400">
             Tahmini Piyasa Değeri
           </p>
 
@@ -347,8 +350,8 @@ export default function AnalysisResult({
           </p>
         </div>
 
-        <div className="rounded-xl border border-zinc-800 bg-black p-4">
-          <p className="text-sm text-zinc-500">
+        <div className="glass-card rounded-2xl p-4">
+          <p className="text-sm text-slate-400">
             Fiyat Değerlendirmesi
           </p>
 
@@ -360,23 +363,23 @@ export default function AnalysisResult({
             }
           </p>
 
-          <p className="mt-1 text-sm text-zinc-400">
+          <p className="mt-1 text-sm text-slate-300">
             {priceDifferenceText}
           </p>
 
-          <p className="mt-1 text-xs text-zinc-500">
+          <p className="mt-1 text-xs text-slate-400">
             %{Math.abs(priceAnalysis.differencePercentage).toFixed(1)}
           </p>
         </div>
 
-        <div className="rounded-xl border border-zinc-800 bg-black p-4">
-          <p className="text-sm text-zinc-500">Analiz Güven Skoru</p>
+        <div className="glass-card rounded-2xl p-4">
+          <p className="text-sm text-slate-400">Analiz Güven Skoru</p>
 
           <p className="mt-2 text-xl font-bold text-white">
             %{analysisConfidence}
           </p>
 
-          <p className="mt-1 text-xs text-zinc-500">
+          <p className="mt-1 text-xs text-slate-400">
             {analysisConfidence >= 80
               ? "Yüksek güven"
               : analysisConfidence >= 60
@@ -386,7 +389,7 @@ export default function AnalysisResult({
 
           <div className="mt-3 h-2 overflow-hidden rounded-full bg-zinc-800">
             <div
-              className="h-full rounded-full bg-emerald-500"
+              className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400"
               style={{
                 width: `${Math.min(
                   Math.max(analysisConfidence, 0),
@@ -399,19 +402,31 @@ export default function AnalysisResult({
       </div>
 
 
-      <div className="border-t border-zinc-800 p-6">
-        <p className="text-sm font-medium text-emerald-400">
-          Satın Alma Risk Endeksi
-        </p>
+      <section className={`${sectionStyle} mt-6`}>
+        <div className="mb-5 flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-400/15 text-xl">
+            ⚠️
+          </div>
 
-        <div className="mt-5 rounded-xl border border-zinc-800 bg-black p-5">
-          <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium text-emerald-300">
+              Satın Alma Analizi
+            </p>
+
+            <h3 className="text-xl font-bold text-white">
+              Risk Endeksi
+            </h3>
+          </div>
+        </div>
+
+        <div className="mt-5 rounded-xl border border-slate-600/30 bg-slate-950/45 p-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-3xl font-bold text-white">
                 {purchaseRiskAnalysis.riskScore} / 100
               </p>
 
-              <p className="mt-1 text-sm text-zinc-400">
+              <p className="mt-1 text-sm text-slate-300">
                 {purchaseRiskAnalysis.riskLevel === "low"
                   ? "Düşük Risk"
                   : purchaseRiskAnalysis.riskLevel === "medium"
@@ -422,14 +437,14 @@ export default function AnalysisResult({
               </p>
             </div>
 
-            <p className="max-w-xl text-sm leading-6 text-zinc-400">
+            <p className="max-w-xl text-sm leading-6 text-slate-300 sm:text-right">
               {purchaseRiskAnalysis.summary}
             </p>
           </div>
 
           <div className="mt-4 h-2 overflow-hidden rounded-full bg-zinc-800">
             <div
-              className="h-full rounded-full bg-amber-500"
+              className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500"
               style={{
                 width: `${Math.min(
                   Math.max(purchaseRiskAnalysis.riskScore, 0),
@@ -439,14 +454,26 @@ export default function AnalysisResult({
             />
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="border-t border-zinc-800 p-6">
-        <p className="text-sm font-medium text-emerald-400">
-          Kullanım Ömrü Tahmini
-        </p>
+      <section className={`${sectionStyle} mt-6`}>
+        <div className="mb-5 flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-400/15 text-xl">
+            🔧
+          </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-5">
+          <div>
+            <p className="text-sm font-medium text-cyan-300">
+              Uzun Vadeli Analiz
+            </p>
+
+            <h3 className="text-xl font-bold text-white">
+              Kullanım Ömrü
+            </h3>
+          </div>
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {[
             ["Motor", `${lifetimeAnalysis.remainingEngineLifeKm.toLocaleString("tr-TR")} km`],
             ["Şanzıman", `${lifetimeAnalysis.remainingTransmissionLifeKm.toLocaleString("tr-TR")} km`],
@@ -463,25 +490,37 @@ export default function AnalysisResult({
           ].map(([label, value]) => (
             <div
               key={String(label)}
-              className="rounded-xl border border-zinc-800 bg-black p-4"
+              className="glass-card rounded-2xl p-4"
             >
-              <p className="text-xs text-zinc-500">{label}</p>
+              <p className="text-xs text-slate-400">{label}</p>
               <p className="mt-2 font-semibold text-white">{value}</p>
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
-      <div className="border-t border-zinc-800 p-6">
+      <section className={`${sectionStyle} mt-6`}>
+        <div className="mb-5 flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-400/15 text-xl">
+            💳
+          </div>
+
+          <div>
+            <p className="text-sm font-medium text-emerald-300">
+              Maliyet Analizi
+            </p>
+
+            <h3 className="text-xl font-bold text-white">
+              Yıllık Sahip Olma Maliyeti
+            </h3>
+          </div>
+        </div>
+
         <p className="text-sm font-medium text-emerald-400">
-          Yıllık Sahip Olma Maliyeti
+          Tahmini yıllık giderler
         </p>
 
-        <h3 className="mt-1 text-xl font-semibold text-white">
-          Tahmini gider analizi
-        </h3>
-
-        <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
             ["Bakım", ownershipCostAnalysis.annualMaintenanceCost],
             ["Yakıt", ownershipCostAnalysis.annualFuelCost],
@@ -490,9 +529,9 @@ export default function AnalysisResult({
           ].map(([label, value]) => (
             <div
               key={String(label)}
-              className="rounded-xl border border-zinc-800 bg-black p-4"
+              className="glass-card rounded-2xl p-4"
             >
-              <p className="text-xs text-zinc-500">{label}</p>
+              <p className="text-xs text-slate-400">{label}</p>
               <p className="mt-2 font-semibold text-white">
                 {Number(value).toLocaleString("tr-TR")} TL
               </p>
@@ -510,8 +549,8 @@ export default function AnalysisResult({
             </p>
           </div>
 
-          <div className="rounded-xl border border-zinc-800 bg-black p-4">
-            <p className="text-xs text-zinc-500">
+          <div className="glass-card rounded-2xl p-4">
+            <p className="text-xs text-slate-400">
               3 Yıllık Değer Kaybı
             </p>
             <p className="mt-2 font-semibold text-white">
@@ -519,7 +558,7 @@ export default function AnalysisResult({
             </p>
           </div>
 
-          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+          <div className="glass-card rounded-2xl border-emerald-400/20 bg-emerald-400/5 p-4">
             <p className="text-xs text-emerald-400">
               Yıllık Toplam
             </p>
@@ -528,9 +567,25 @@ export default function AnalysisResult({
             </p>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="border-t border-zinc-800 p-6">
+      <section className={`${sectionStyle} mt-6`}>
+        <div className="mb-5 flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-400/15 text-xl">
+            📊
+          </div>
+
+          <div>
+            <p className="text-sm font-medium text-violet-300">
+              Piyasa Analizi
+            </p>
+
+            <h3 className="text-xl font-bold text-white">
+              Rekabet Konumu
+            </h3>
+          </div>
+        </div>
+
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-medium text-emerald-400">
@@ -543,7 +598,7 @@ export default function AnalysisResult({
               ]}
             </h3>
 
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-500">
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
               {competitivePositioning.summary}
             </p>
           </div>
@@ -558,7 +613,7 @@ export default function AnalysisResult({
           </div>
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <MarketStatCard
             label="Fiyat Sıralaması"
             value={
@@ -588,9 +643,9 @@ export default function AnalysisResult({
             }
           />
         </div>
-      </div>
+      </section>
 
-      <div className="border-t border-zinc-800 p-6">
+      <div className="border-t border-white/5 p-4 sm:p-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-sm font-medium text-emerald-400">
@@ -601,7 +656,7 @@ export default function AnalysisResult({
               Piyasa Karşılaştırması
             </h3>
 
-            <p className="mt-2 text-sm leading-6 text-zinc-500">
+            <p className="mt-2 text-sm leading-6 text-slate-400">
               Benzer model yılı, kilometre ve fiyat aralığındaki araçlar
               karşılaştırılmıştır.
             </p>
@@ -642,7 +697,7 @@ export default function AnalysisResult({
 
         {marketAnalysis.comparableVehicles.length > 0 && (
           <div className="mt-6">
-            <h4 className="text-sm font-semibold text-zinc-300">
+            <h4 className="text-sm font-semibold text-slate-200">
               Karşılaştırılan Emsal Araçlar
             </h4>
 
@@ -651,7 +706,7 @@ export default function AnalysisResult({
                 (comparableVehicle, index) => (
                   <article
                     key={`${comparableVehicle.title}-${index}`}
-                    className="rounded-xl border border-zinc-800 bg-black p-4"
+                    className="glass-card rounded-2xl p-4"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div>
@@ -659,7 +714,7 @@ export default function AnalysisResult({
                           {comparableVehicle.title}
                         </p>
 
-                        <p className="mt-2 text-sm text-zinc-500">
+                        <p className="mt-2 text-sm text-slate-400">
                           {formatMileage(
                             comparableVehicle.mileage
                           )}{" "}
@@ -667,7 +722,7 @@ export default function AnalysisResult({
                         </p>
                       </div>
 
-                      <span className="shrink-0 rounded-lg bg-zinc-900 px-3 py-2 text-sm font-bold text-emerald-400">
+                      <span className="shrink-0 rounded-lg bg-slate-800/55 px-3 py-2 text-sm font-bold text-emerald-400">
                         {formatPrice(comparableVehicle.price)}
                       </span>
                     </div>
@@ -677,7 +732,7 @@ export default function AnalysisResult({
                         href={comparableVehicle.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="mt-4 inline-flex text-sm font-semibold text-zinc-400 transition hover:text-emerald-400"
+                        className="mt-4 inline-flex text-sm font-semibold text-slate-300 transition hover:text-emerald-400"
                       >
                         Emsal ilanı aç
                       </a>
@@ -690,8 +745,7 @@ export default function AnalysisResult({
         )}
       </div>
 
-
-      <div className="border-t border-zinc-800 p-6">
+      <div className="border-t border-white/5 p-4 sm:p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-medium text-emerald-400">
@@ -721,12 +775,12 @@ export default function AnalysisResult({
         </div>
 
         <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
-          <article className="rounded-xl border border-zinc-800 bg-black p-5">
-            <p className="text-sm text-zinc-500">
+          <article className="glass-card rounded-2xl p-5">
+            <p className="text-sm text-slate-400">
               Açıklama Risk Puanı
             </p>
 
-            <p className="mt-2 text-2xl font-bold text-white">
+            <p className="mt-2 text-xl font-bold text-white sm:text-2xl">
               {descriptionAnalysis.riskScore} / 100
             </p>
 
@@ -746,12 +800,12 @@ export default function AnalysisResult({
             </div>
           </article>
 
-          <article className="rounded-xl border border-zinc-800 bg-black p-5">
-            <p className="text-sm text-zinc-500">
+          <article className="glass-card rounded-2xl p-5">
+            <p className="text-sm text-slate-400">
               Genel Değerlendirme
             </p>
 
-            <p className="mt-3 text-sm leading-6 text-zinc-300">
+            <p className="mt-3 text-sm leading-6 text-slate-200">
               {descriptionAnalysis.summary}
             </p>
           </article>
@@ -763,7 +817,7 @@ export default function AnalysisResult({
               Tespit Edilen Riskler
             </h4>
 
-            <ul className="mt-3 space-y-2 text-sm text-zinc-300">
+            <ul className="mt-3 space-y-2 text-sm text-slate-200">
               {descriptionAnalysis.warnings.map((warning, index) => (
                 <li
                   key={`description-warning-${index}`}
@@ -783,7 +837,7 @@ export default function AnalysisResult({
               Olumlu Satıcı Beyanları
             </h4>
 
-            <ul className="mt-3 space-y-2 text-sm text-zinc-300">
+            <ul className="mt-3 space-y-2 text-sm text-slate-200">
               {descriptionAnalysis.positiveSignals.map((signal, index) => (
                 <li
                   key={`description-signal-${index}`}
@@ -799,7 +853,7 @@ export default function AnalysisResult({
 
         {descriptionAnalysis.detectedKeywords.length > 0 && (
           <div className="mt-5">
-            <p className="text-sm font-semibold text-zinc-300">
+            <p className="text-sm font-semibold text-slate-200">
               Tespit Edilen İfadeler
             </p>
 
@@ -807,7 +861,7 @@ export default function AnalysisResult({
               {descriptionAnalysis.detectedKeywords.map((keyword) => (
                 <span
                   key={keyword}
-                  className="rounded-full border border-zinc-700 bg-black px-3 py-1 text-xs text-zinc-400"
+                  className="rounded-full border border-slate-500/35 bg-slate-950/45 px-3 py-1 text-xs text-slate-300"
                 >
                   {keyword}
                 </span>
@@ -817,7 +871,7 @@ export default function AnalysisResult({
         )}
       </div>
 
-      <div className="border-t border-zinc-800 p-6">
+      <div className="border-t border-white/5 p-4 sm:p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-medium text-emerald-400">
@@ -837,7 +891,7 @@ export default function AnalysisResult({
                   ? "bg-amber-500/15 text-amber-400"
                   : photoAnalysis.conditionLevel === "poor"
                     ? "bg-red-500/15 text-red-400"
-                    : "bg-zinc-700 text-zinc-300"
+                    : "bg-zinc-700 text-slate-200"
             }`}
           >
             {photoAnalysis.conditionLevel === "good"
@@ -873,23 +927,23 @@ export default function AnalysisResult({
           />
         </div>
 
-        <article className="mt-5 rounded-xl border border-zinc-800 bg-black p-5">
-          <p className="text-sm text-zinc-500">
+        <article className="mt-5 rounded-xl border border-slate-600/30 bg-slate-950/45 p-5">
+          <p className="text-sm text-slate-400">
             Genel Fotoğraf Değerlendirmesi
           </p>
 
-          <p className="mt-3 text-sm leading-6 text-zinc-300">
+          <p className="mt-3 text-sm leading-6 text-slate-200">
             {photoAnalysis.summary}
           </p>
         </article>
 
         {photoAnalysis.visualFindings.length > 0 && (
-          <div className="mt-5 rounded-xl border border-zinc-700 bg-zinc-950 p-5">
+          <div className="mt-5 rounded-xl border border-slate-500/35 bg-slate-900/45 p-5">
             <h4 className="font-semibold text-white">
               Görsel Ekspertiz Bulguları
             </h4>
 
-            <ul className="mt-3 space-y-2 text-sm text-zinc-300">
+            <ul className="mt-3 space-y-2 text-sm text-slate-200">
               {photoAnalysis.visualFindings.map((finding, index) => (
                 <li
                   key={`visual-finding-${index}`}
@@ -909,7 +963,7 @@ export default function AnalysisResult({
               Fotoğraf Eksikleri
             </h4>
 
-            <ul className="mt-3 space-y-2 text-sm text-zinc-300">
+            <ul className="mt-3 space-y-2 text-sm text-slate-200">
               {photoAnalysis.warnings.map((warning, index) => (
                 <li
                   key={`photo-warning-${index}`}
@@ -929,7 +983,7 @@ export default function AnalysisResult({
               Olumlu Fotoğraf Bulguları
             </h4>
 
-            <ul className="mt-3 space-y-2 text-sm text-zinc-300">
+            <ul className="mt-3 space-y-2 text-sm text-slate-200">
               {photoAnalysis.positiveSignals.map((signal, index) => (
                 <li
                   key={`photo-signal-${index}`}
@@ -946,7 +1000,7 @@ export default function AnalysisResult({
         {vehicle.thumbnailImages &&
           vehicle.thumbnailImages.length > 0 && (
             <div className="mt-5">
-              <p className="text-sm font-semibold text-zinc-300">
+              <p className="text-sm font-semibold text-slate-200">
                 İlan Fotoğrafları
               </p>
 
@@ -954,7 +1008,7 @@ export default function AnalysisResult({
                 {vehicle.thumbnailImages.map((image, index) => (
                   <div
                     key={`${image}-${index}`}
-                    className="overflow-hidden rounded-xl border border-zinc-800 bg-black"
+                    className="overflow-hidden rounded-xl border border-slate-600/30 bg-slate-950/45"
                   >
                     <img
                       src={image}
@@ -994,8 +1048,8 @@ export default function AnalysisResult({
         />
       </div>
 
-      <div className="space-y-4 border-t border-zinc-800 p-6">
-        <article className="rounded-xl border border-zinc-800 bg-black p-5">
+      <div className="space-y-4 border-t border-slate-600/30 p-6">
+        <article className="glass-card rounded-2xl p-5">
           <h3 className="text-lg font-semibold text-white">
             AI Yorumu
           </h3>
@@ -1010,13 +1064,13 @@ export default function AnalysisResult({
                 return (
                   <div
                     key={`ai-section-${index}`}
-                    className="rounded-lg border border-zinc-800 bg-zinc-950 p-4"
+                    className="glass-card rounded-xl p-4"
                   >
                     <h4 className="font-medium text-white">
                       {title}
                     </h4>
 
-                    <p className="mt-2 text-sm leading-6 text-zinc-400">
+                    <p className="mt-2 text-sm leading-6 text-slate-300">
                       {contentParts.join(":").trim()}
                     </p>
                   </div>
@@ -1037,12 +1091,12 @@ export default function AnalysisResult({
               </h3>
             </div>
 
-            <div className="rounded-full border border-emerald-500/20 bg-black px-4 py-2 text-sm font-semibold text-emerald-400">
+            <div className="rounded-full border border-emerald-500/20 bg-slate-950/45 px-4 py-2 text-sm font-semibold text-emerald-400">
               {formatPrice(negotiationAnalysis.negotiationMargin)} pazarlık alanı
             </div>
           </div>
 
-          <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
+          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <MarketStatCard
               label="İlk Teklif"
               value={formatPrice(
@@ -1066,7 +1120,7 @@ export default function AnalysisResult({
             />
           </div>
 
-          <p className="mt-5 leading-7 text-zinc-300">
+          <p className="mt-5 leading-7 text-slate-200">
             {negotiationAnalysis.strategy}
           </p>
 
@@ -1080,7 +1134,7 @@ export default function AnalysisResult({
                 (argument, index) => (
                   <li
                     key={`negotiation-argument-${index}`}
-                    className="flex gap-3 text-sm leading-6 text-zinc-400"
+                    className="flex gap-3 text-sm leading-6 text-slate-300"
                   >
                     <span className="text-emerald-400">•</span>
                     <span>{argument}</span>
@@ -1090,24 +1144,24 @@ export default function AnalysisResult({
             </ul>
           </div>
 
-          <div className="mt-5 rounded-lg border border-zinc-800 bg-black p-4">
-            <p className="text-xs font-medium text-zinc-500">
+          <div className="mt-5 rounded-lg border border-slate-600/30 bg-slate-950/45 p-4">
+            <p className="text-xs font-medium text-slate-400">
               Genel Tavsiye
             </p>
 
-            <p className="mt-2 text-sm leading-6 text-zinc-300">
+            <p className="mt-2 text-sm leading-6 text-slate-200">
               {negotiationAdvice}
             </p>
           </div>
         </article>
 
         {vehicle.description && (
-          <article className="rounded-xl border border-zinc-800 bg-black p-5">
+          <article className="glass-card rounded-2xl p-5">
             <h3 className="text-lg font-semibold text-white">
               İlan Açıklaması
             </h3>
 
-            <p className="mt-3 whitespace-pre-line leading-7 text-zinc-400">
+            <p className="mt-3 whitespace-pre-line leading-7 text-slate-300">
               {vehicle.description}
             </p>
           </article>
@@ -1134,10 +1188,10 @@ function MarketStatCard({
       className={`rounded-xl border p-4 ${
         highlighted
           ? "border-emerald-500/30 bg-emerald-500/5"
-          : "border-zinc-800 bg-black"
+          : "border-slate-600/30 bg-slate-950/45"
       }`}
     >
-      <p className="text-xs text-zinc-500">
+      <p className="text-xs text-slate-400">
         {label}
       </p>
 
@@ -1164,13 +1218,13 @@ function ResultList({
   emptyMessage,
 }: ResultListProps) {
   return (
-    <article className="rounded-xl border border-zinc-800 bg-black p-5">
+    <article className="glass-card rounded-2xl p-5">
       <h3 className="text-lg font-semibold text-white">
         {title}
       </h3>
 
       {items.length > 0 ? (
-        <ul className="mt-4 space-y-3 text-sm leading-6 text-zinc-400">
+        <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-300">
           {items.map((item, index) => (
             <li
               key={`${title}-${index}`}
@@ -1182,7 +1236,7 @@ function ResultList({
           ))}
         </ul>
       ) : (
-        <p className="mt-4 text-sm text-zinc-500">
+        <p className="mt-4 text-sm text-slate-400">
           {emptyMessage}
         </p>
       )}

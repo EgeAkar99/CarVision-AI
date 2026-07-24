@@ -278,15 +278,15 @@ export default function AnalysisForm() {
   }
 
   return (
-    <div className="mt-10 w-full max-w-4xl">
-      <div className="mb-6 grid grid-cols-2 rounded-xl border border-zinc-800 bg-zinc-900 p-1">
+    <div className="mx-auto mt-10 w-full max-w-4xl">
+      <div className="glass-card mb-5 grid grid-cols-2 rounded-2xl p-1.5 shadow-2xl shadow-slate-950/20">
         <button
           type="button"
           onClick={() => changeMode("listing")}
-          className={`rounded-lg px-4 py-3 text-sm font-semibold transition ${
+          className={`rounded-xl px-3 py-3 text-xs font-semibold transition sm:px-4 sm:text-sm ${
             mode === "listing"
-              ? "bg-emerald-500 text-black"
-              : "text-zinc-400 hover:text-white"
+              ? "primary-glow bg-gradient-to-r from-emerald-400 to-emerald-500 text-slate-950"
+              : "text-slate-300 hover:text-white"
           }`}
         >
           İlan Linki
@@ -295,10 +295,10 @@ export default function AnalysisForm() {
         <button
           type="button"
           onClick={() => changeMode("manual")}
-          className={`rounded-lg px-4 py-3 text-sm font-semibold transition ${
+          className={`rounded-xl px-3 py-3 text-xs font-semibold transition sm:px-4 sm:text-sm ${
             mode === "manual"
-              ? "bg-emerald-500 text-black"
-              : "text-zinc-400 hover:text-white"
+              ? "primary-glow bg-gradient-to-r from-emerald-400 to-emerald-500 text-slate-950"
+              : "text-slate-300 hover:text-white"
           }`}
         >
           Manuel Araç Bilgisi
@@ -307,7 +307,7 @@ export default function AnalysisForm() {
 
       <form onSubmit={handleSubmit}>
         {mode === "listing" ? (
-          <div className="flex w-full flex-col gap-4 sm:flex-row">
+          <div className="flex w-full flex-col gap-3 sm:flex-row sm:gap-4">
             <input
               type="url"
               value={listingUrl}
@@ -318,19 +318,19 @@ export default function AnalysisForm() {
               }}
               placeholder="Sahibinden ilan linkini yapıştır..."
               disabled={isLoading}
-              className="flex-1 rounded-xl border border-zinc-700 bg-zinc-900 px-5 py-4 text-white outline-none transition focus:border-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
+              className="glass-card min-w-0 flex-1 rounded-2xl px-4 py-4 text-sm text-white placeholder:text-slate-400 outline-none transition focus:border-emerald-400/60 disabled:cursor-not-allowed disabled:opacity-50 sm:px-5 sm:text-base"
             />
 
             <button
               type="submit"
               disabled={isLoading}
-              className="rounded-xl bg-emerald-500 px-8 py-4 font-semibold text-black transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
+              className="primary-glow w-full rounded-2xl bg-gradient-to-r from-emerald-400 to-emerald-500 px-6 py-4 font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:from-emerald-300 hover:to-emerald-400 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:px-8"
             >
               {isLoading ? "Analiz Ediliyor..." : "Analiz Et"}
             </button>
           </div>
         ) : (
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+          <div className="glass-card rounded-3xl p-6">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <FormInput
                 label="Marka"
@@ -395,7 +395,7 @@ export default function AnalysisForm() {
             </div>
 
             <div className="mt-4">
-              <label className="text-sm font-medium text-zinc-300">
+              <label className="text-sm font-medium text-slate-200">
                 İlan Açıklaması
               </label>
 
@@ -407,14 +407,14 @@ export default function AnalysisForm() {
                 placeholder="Bakım, hasar, değişen, boya ve diğer araç bilgileri..."
                 rows={5}
                 disabled={isLoading}
-                className="mt-2 w-full resize-none rounded-xl border border-zinc-700 bg-black px-4 py-3 text-white outline-none transition focus:border-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-2 w-full resize-none rounded-xl border border-slate-500/35 bg-slate-950/45 px-4 py-3 text-white outline-none transition focus:border-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="mt-5 w-full rounded-xl bg-emerald-500 px-8 py-4 font-semibold text-black transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
+              className="primary-glow mt-5 w-full rounded-2xl bg-gradient-to-r from-emerald-400 to-emerald-500 px-8 py-4 font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:from-emerald-300 hover:to-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLoading ? "Analiz Ediliyor..." : "Araç Bilgilerini Analiz Et"}
             </button>
@@ -423,16 +423,40 @@ export default function AnalysisForm() {
       </form>
 
       {isLoading && (
-        <div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-          <p className="font-semibold text-emerald-400">
-            Araç analiz ediliyor...
-          </p>
+        <div className="glass-card mt-6 overflow-hidden rounded-3xl p-5">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="font-semibold text-emerald-300">
+                Araç analiz ediliyor
+              </p>
 
-          <div className="mt-4 space-y-2 text-sm text-zinc-400">
-            <p>Araç bilgileri backend&apos;e gönderiliyor</p>
-            <p>Fiyat analizi oluşturuluyor</p>
-            <p>Riskler değerlendiriliyor</p>
-            <p>AI raporu hazırlanıyor</p>
+              <p className="mt-1 text-sm text-slate-400">
+                Veriler işleniyor ve rapor hazırlanıyor.
+              </p>
+            </div>
+
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-600/40 border-t-emerald-400" />
+          </div>
+
+          <div className="mt-5 h-2 overflow-hidden rounded-full bg-slate-700/50">
+            <div className="h-full w-2/3 animate-pulse rounded-full bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400" />
+          </div>
+
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            {[
+              "Araç bilgileri doğrulanıyor",
+              "Emsal piyasa verileri inceleniyor",
+              "Riskler hesaplanıyor",
+              "AI raporu hazırlanıyor",
+            ].map((step) => (
+              <div
+                key={step}
+                className="glass-card flex items-center gap-3 rounded-2xl px-4 py-3 text-sm text-slate-300"
+              >
+                <span className="animate-pulse-soft h-2 w-2 rounded-full bg-emerald-400" />
+                <span>{step}</span>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -443,7 +467,7 @@ export default function AnalysisForm() {
             İlan bilgilerine doğrudan erişilemedi
           </p>
 
-          <p className="mt-2 text-sm leading-6 text-zinc-300">
+          <p className="mt-2 text-sm leading-6 text-slate-200">
             Sahibinden, sunucu üzerinden yapılan otomatik isteği engelledi.
             Araç bilgilerini manuel girerek analize devam edebilirsin.
           </p>
@@ -461,9 +485,15 @@ export default function AnalysisForm() {
       {message &&
         !isLoading &&
         errorCode !== "ACCESS_BLOCKED" && (
-          <p className="mt-4 text-center text-sm text-zinc-400">
+          <div
+            className={`mt-4 rounded-2xl border px-4 py-3 text-center text-sm ${
+              errorCode
+                ? "border-rose-400/20 bg-rose-400/10 text-rose-200"
+                : "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
+            }`}
+          >
             {message}
-          </p>
+          </div>
         )}
 
       {result && (
@@ -492,7 +522,7 @@ function FormInput({
 }: FormInputProps) {
   return (
     <label>
-      <span className="text-sm font-medium text-zinc-300">{label}</span>
+      <span className="text-sm font-medium text-slate-200">{label}</span>
 
       <input
         type={type}
@@ -502,7 +532,7 @@ function FormInput({
         disabled={false}
         required
         min={type === "number" ? 0 : undefined}
-        className="mt-2 w-full rounded-xl border border-zinc-700 bg-black px-4 py-3 text-white outline-none transition focus:border-emerald-500"
+        className="mt-2 w-full rounded-xl border border-slate-500/35 bg-slate-950/45 px-4 py-3 text-white outline-none transition focus:border-emerald-500"
       />
     </label>
   );
