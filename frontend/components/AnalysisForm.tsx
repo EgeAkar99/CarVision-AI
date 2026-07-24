@@ -96,7 +96,9 @@ export default function AnalysisForm() {
         setBrowserComparables(comparables);
         setListingUrl(vehicle.url?.trim() ?? "");
         setMode("listing");
-        setMessage("Eklentiden araç bilgileri alındı.");
+        setMessage(
+          `Eklentiden araç bilgileri ve ${comparables.length} emsal alındı.`
+        );
         setErrorCode(null);
         setResult(null);
 
@@ -147,6 +149,52 @@ export default function AnalysisForm() {
     resetFeedback();
 
     let requestBody;
+
+    if (mode === "manual") {
+      const requiredFields = [
+        manualForm.brand,
+        manualForm.model,
+        manualForm.year,
+        manualForm.mileage,
+        manualForm.fuel,
+        manualForm.transmission,
+        manualForm.price,
+        manualForm.city,
+      ];
+
+      if (requiredFields.some((field) => !field.trim())) {
+        setMessage("Lütfen zorunlu araç bilgilerini eksiksiz doldur.");
+        setErrorCode("VALIDATION_ERROR");
+        return;
+      }
+
+      const year = Number(manualForm.year);
+      const mileage = Number(manualForm.mileage);
+      const price = Number(manualForm.price);
+      const currentYear = new Date().getFullYear();
+
+      if (
+        !Number.isFinite(year) ||
+        year < 1950 ||
+        year > currentYear + 1
+      ) {
+        setMessage("Geçerli bir model yılı gir.");
+        setErrorCode("VALIDATION_ERROR");
+        return;
+      }
+
+      if (!Number.isFinite(mileage) || mileage < 0) {
+        setMessage("Geçerli bir kilometre değeri gir.");
+        setErrorCode("VALIDATION_ERROR");
+        return;
+      }
+
+      if (!Number.isFinite(price) || price <= 0) {
+        setMessage("Geçerli bir ilan fiyatı gir.");
+        setErrorCode("VALIDATION_ERROR");
+        return;
+      }
+    }
 
     if (mode === "listing") {
       if (browserVehicle) {
@@ -207,6 +255,15 @@ export default function AnalysisForm() {
 
       setResult(data.result);
       setMessage("Araç analizi tamamlandı.");
+
+      window.setTimeout(() => {
+        document
+          .getElementById("analysis-result")
+          ?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+      }, 100);
     } catch (error) {
       const errorMessage =
         error instanceof Error
@@ -409,7 +466,11 @@ export default function AnalysisForm() {
           </p>
         )}
 
-      {result && <AnalysisResultCard result={result} />}
+      {result && (
+        <div id="analysis-result" className="scroll-mt-6">
+          <AnalysisResultCard result={result} />
+        </div>
+      )}
     </div>
   );
 }
@@ -438,6 +499,9 @@ function FormInput({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
+        disabled={false}
+        required
+        min={type === "number" ? 0 : undefined}
         className="mt-2 w-full rounded-xl border border-zinc-700 bg-black px-4 py-3 text-white outline-none transition focus:border-emerald-500"
       />
     </label>

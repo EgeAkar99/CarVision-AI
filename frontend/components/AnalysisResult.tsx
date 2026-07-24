@@ -89,6 +89,33 @@ export default function AnalysisResult({
     .filter(Boolean)
     .join(" / ");
 
+  const quickWarnings = [
+    ...disadvantages,
+    ...importantChecks,
+  ]
+    .filter(
+      (warning, index, warnings) =>
+        warning && warnings.indexOf(warning) === index
+    )
+    .slice(0, 5);
+
+  const decisionLabel =
+    purchaseRecommendation === "strong_buy" ||
+    purchaseRecommendation === "buy"
+      ? "AL"
+      : purchaseRecommendation === "consider"
+        ? "DİKKATLİ DEĞERLENDİR"
+        : "ALMA";
+
+  const riskLabel =
+    purchaseRiskAnalysis.riskLevel === "low"
+      ? "Düşük"
+      : purchaseRiskAnalysis.riskLevel === "medium"
+        ? "Orta"
+        : purchaseRiskAnalysis.riskLevel === "high"
+          ? "Yüksek"
+          : "Çok Yüksek";
+
   const vehicleDetails = [
     {
       label: "İlan No",
@@ -205,6 +232,74 @@ export default function AnalysisResult({
               </a>
             )}
           </div>
+        </div>
+      </div>
+
+      <div className="border-b border-zinc-800 p-6">
+        <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-sm font-medium text-emerald-400">
+                Hızlı Karar Özeti
+              </p>
+
+              <h3 className="mt-1 text-2xl font-bold text-white">
+                {decisionLabel}
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="rounded-xl border border-zinc-800 bg-black px-4 py-3">
+                <p className="text-xs text-zinc-500">Genel Puan</p>
+                <p className="mt-1 font-bold text-white">
+                  {score} / 100
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-zinc-800 bg-black px-4 py-3">
+                <p className="text-xs text-zinc-500">Risk</p>
+                <p className="mt-1 font-bold text-white">
+                  {riskLabel}
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-zinc-800 bg-black px-4 py-3">
+                <p className="text-xs text-zinc-500">Fiyat Avantajı</p>
+                <p className="mt-1 font-bold text-white">
+                  {competitivePositioning.priceAdvantageScore} / 100
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-zinc-800 bg-black px-4 py-3">
+                <p className="text-xs text-zinc-500">Pazarlık Gücü</p>
+                <p className="mt-1 font-bold text-white">
+                  %{negotiationAnalysis.negotiationPower}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {quickWarnings.length > 0 && (
+            <div className="mt-5 border-t border-zinc-800 pt-5">
+              <p className="text-sm font-semibold text-white">
+                En Önemli Uyarılar
+              </p>
+
+              <div className="mt-3 grid gap-2 md:grid-cols-2">
+                {quickWarnings.map((warning, index) => (
+                  <div
+                    key={`quick-warning-${index}`}
+                    className="flex gap-3 rounded-lg border border-zinc-800 bg-black p-3 text-sm leading-6 text-zinc-400"
+                  >
+                    <span className="font-semibold text-amber-400">
+                      {index + 1}.
+                    </span>
+                    <span>{warning}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
