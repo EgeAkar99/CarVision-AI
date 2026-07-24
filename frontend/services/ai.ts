@@ -623,6 +623,202 @@ function createImportantChecks(vehicle: VehicleData): string[] {
   return checks;
 }
 
+function createPurchaseRiskAnalysis(args: {
+  score: number;
+  mileage: number;
+  vehicleAge: number;
+  descriptionRisk: number;
+  photoCoverage: number;
+  marketConfidence: number;
+  damageRecord: number;
+  chronicRiskCount: number;
+}): AnalysisResult["purchaseRiskAnalysis"] {
+  let risk = 50;
+
+  risk += args.descriptionRisk * 0.25;
+  risk += Math.max(0, 70 - args.photoCoverage) * 0.20;
+  risk += Math.max(0, 80 - args.marketConfidence) * 0.20;
+  risk += args.chronicRiskCount * 4;
+  risk += Math.min(args.mileage / 15000, 20);
+  risk += Math.min(args.vehicleAge, 20);
+  risk += Math.min(args.damageRecord / 20000, 15);
+
+  risk -= args.score * 0.45;
+
+  risk = Math.max(0, Math.min(100, Math.round(risk)));
+
+  const riskLevel =
+    risk >= 75
+      ? "very_high"
+      : risk >= 55
+        ? "high"
+        : risk >= 35
+          ? "medium"
+          : "low";
+
+  const summary =
+    riskLevel === "low"
+      ? "Satın alma riski düşük görünüyor."
+      : riskLevel === "medium"
+        ? "Satın alma öncesinde ekspertiz önerilir."
+        : riskLevel === "high"
+          ? "Araç dikkatli incelenmeden satın alınmamalıdır."
+          : "Risk seviyesi oldukça yüksek. Alternatif ilanlar değerlendirilmelidir.";
+
+  return {
+    riskScore: risk,
+    riskLevel,
+    summary,
+  };
+}
+
+function createLifetimeAnalysis(
+  vehicle: VehicleData,
+  riskCount: number
+): AnalysisResult["lifetimeAnalysis"] {
+  const mileage = getNumber(vehicle, [
+    "mileage",
+    "kilometre",
+    "km",
+  ]);
+
+  const transmission = normalizeText(
+    getString(vehicle, ["transmission", "vites"])
+  );
+
+  const engineReferenceLife = 400000;
+  const transmissionReferenceLife =
+    transmission.includes("otomatik") ||
+    transmission.includes("automatic")
+      ? 300000
+      : 350000;
+
+  const remainingEngineLifeKm = Math.max(
+    0,
+    engineReferenceLife - mileage
+  );
+
+  const remainingTransmissionLifeKm = Math.max(
+    0,
+    transmissionReferenceLife - mileage
+  );
+
+  const criticalRepairProbability = Math.min(
+    95,
+    Math.round(
+      (mileage / 400000) * 60 +
+      riskCount * 8
+    )
+  );
+
+  const majorMaintenanceRisk =
+    criticalRepairProbability >= 70
+      ? "high"
+      : criticalRepairProbability >= 40
+        ? "medium"
+        : "low";
+
+  const overallLifetimeScore = Math.max(
+    10,
+    Math.min(
+      100,
+      Math.round(
+        100 -
+        criticalRepairProbability +
+        remainingEngineLifeKm / 20000
+      )
+    )
+  );
+
+  return {
+    remainingEngineLifeKm,
+    remainingTransmissionLifeKm,
+    majorMaintenanceRisk,
+    criticalRepairProbability,
+    overallLifetimeScore,
+  };
+}
+
+function createOwnershipCostAnalysis(
+  vehicle: VehicleData,
+  estimatedMarketPrice: number,
+  riskCount: number
+): AnalysisResult["ownershipCostAnalysis"] {
+  const fuel = normalizeText(
+    getString(vehicle, ["fuel", "fuelType", "yakit"])
+  );
+
+  const mileage = getNumber(vehicle, [
+    "mileage",
+    "kilometre",
+    "km",
+  ]);
+
+  const year = getNumber(vehicle, [
+    "year",
+    "modelYear",
+    "yil",
+  ]);
+
+  const vehicleAge = Math.max(CURRENT_YEAR - year, 0);
+
+  const annualMaintenanceCost = Math.round(
+    (
+      18000 +
+      vehicleAge * 1500 +
+      Math.min(mileage / 10, 30000) +
+      riskCount * 7000
+    ) / 1000
+  ) * 1000;
+
+  const annualFuelCost =
+    fuel.includes("dizel")
+      ? 72000
+      : fuel.includes("hibrit")
+        ? 52000
+        : fuel.includes("elektrik")
+          ? 30000
+          : 85000;
+
+  const annualTaxEstimate = Math.round(
+    Math.max(3500, estimatedMarketPrice * 0.008) / 500
+  ) * 500;
+
+  const annualInsuranceEstimate = Math.round(
+    Math.max(15000, estimatedMarketPrice * 0.035) / 1000
+  ) * 1000;
+
+  const potentialMajorRepairCost = Math.round(
+    (
+      riskCount * 25000 +
+      (mileage > 200000 ? 30000 : 0)
+    ) / 5000
+  ) * 5000;
+
+  const threeYearDepreciation = Math.round(
+    estimatedMarketPrice *
+      (vehicleAge <= 3 ? 0.24 : vehicleAge <= 8 ? 0.18 : 0.12) /
+      5000
+  ) * 5000;
+
+  const annualTotalCost =
+    annualMaintenanceCost +
+    annualFuelCost +
+    annualTaxEstimate +
+    annualInsuranceEstimate +
+    Math.round(threeYearDepreciation / 3);
+
+  return {
+    annualMaintenanceCost,
+    annualFuelCost,
+    annualTaxEstimate,
+    annualInsuranceEstimate,
+    potentialMajorRepairCost,
+    threeYearDepreciation,
+    annualTotalCost,
+  };
+}
+
 function analyzeDescription(
   vehicle: VehicleData
 ): AnalysisResult["descriptionAnalysis"] {
@@ -997,6 +1193,35 @@ export async function analyzeVehicle(
   const equipmentAnalysis =
     analyzeEquipment(vehicle);
 
+  const ownershipCostAnalysis =
+    createOwnershipCostAnalysis(
+      vehicleData,
+      estimatedMarketPrice,
+      vehicleSpecificRisks.length
+    );
+
+  const lifetimeAnalysis =
+    createLifetimeAnalysis(
+      vehicleData,
+      vehicleSpecificRisks.length
+    );
+
+  const purchaseRiskAnalysis =
+    createPurchaseRiskAnalysis({
+      score,
+      mileage: getNumber(vehicleData, ["mileage","km","kilometre"]),
+      vehicleAge: Math.max(
+        CURRENT_YEAR -
+        getNumber(vehicleData, ["year","modelYear","yil"]),
+        0
+      ),
+      descriptionRisk: descriptionAnalysis.riskScore,
+      photoCoverage: photoAnalysis.coverageScore,
+      marketConfidence: marketAnalysis.confidence,
+      damageRecord: getNumber(vehicleData, ["damageRecord","tramer","damageAmount"]),
+      chronicRiskCount: vehicleSpecificRisks.length,
+    });
+
   let adjustedScore = score;
 
   if (descriptionAnalysis.riskLevel === "high") {
@@ -1062,6 +1287,12 @@ export async function analyzeVehicle(
     },
 
     marketAnalysis,
+
+    ownershipCostAnalysis,
+
+    lifetimeAnalysis,
+
+    purchaseRiskAnalysis,
 
     descriptionAnalysis,
 

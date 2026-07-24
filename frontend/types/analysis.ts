@@ -84,6 +84,30 @@ export type PhotoAnalysis = {
   summary: string;
 };
 
+export type OwnershipCostAnalysis = {
+  annualMaintenanceCost: number;
+  annualFuelCost: number;
+  annualTaxEstimate: number;
+  annualInsuranceEstimate: number;
+  potentialMajorRepairCost: number;
+  threeYearDepreciation: number;
+  annualTotalCost: number;
+};
+
+export type LifetimeAnalysis = {
+  remainingEngineLifeKm: number;
+  remainingTransmissionLifeKm: number;
+  majorMaintenanceRisk: "low" | "medium" | "high";
+  criticalRepairProbability: number;
+  overallLifetimeScore: number;
+};
+
+export type PurchaseRiskAnalysis = {
+  riskScore: number;
+  riskLevel: "low" | "medium" | "high" | "very_high";
+  summary: string;
+};
+
 export type AnalysisResult = {
   vehicle: Vehicle;
 
@@ -102,6 +126,12 @@ export type AnalysisResult = {
   };
 
   marketAnalysis: ComparableMarketAnalysis;
+
+  ownershipCostAnalysis: OwnershipCostAnalysis;
+
+  lifetimeAnalysis: LifetimeAnalysis;
+
+  purchaseRiskAnalysis: PurchaseRiskAnalysis;
 
   descriptionAnalysis: DescriptionAnalysis;
 

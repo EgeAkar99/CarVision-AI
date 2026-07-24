@@ -48,6 +48,9 @@ export default function AnalysisResult({
     purchaseRecommendation,
     priceAnalysis,
     marketAnalysis,
+    ownershipCostAnalysis,
+    lifetimeAnalysis,
+    purchaseRiskAnalysis,
     descriptionAnalysis,
     photoAnalysis,
     chronicProblems,
@@ -289,6 +292,137 @@ export default function AnalysisResult({
         </div>
       </div>
 
+
+      <div className="border-t border-zinc-800 p-6">
+        <p className="text-sm font-medium text-emerald-400">
+          Satın Alma Risk Endeksi
+        </p>
+
+        <div className="mt-5 rounded-xl border border-zinc-800 bg-black p-5">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-3xl font-bold text-white">
+                {purchaseRiskAnalysis.riskScore} / 100
+              </p>
+
+              <p className="mt-1 text-sm text-zinc-400">
+                {purchaseRiskAnalysis.riskLevel === "low"
+                  ? "Düşük Risk"
+                  : purchaseRiskAnalysis.riskLevel === "medium"
+                    ? "Orta Risk"
+                    : purchaseRiskAnalysis.riskLevel === "high"
+                      ? "Yüksek Risk"
+                      : "Çok Yüksek Risk"}
+              </p>
+            </div>
+
+            <p className="max-w-xl text-sm leading-6 text-zinc-400">
+              {purchaseRiskAnalysis.summary}
+            </p>
+          </div>
+
+          <div className="mt-4 h-2 overflow-hidden rounded-full bg-zinc-800">
+            <div
+              className="h-full rounded-full bg-amber-500"
+              style={{
+                width: `${Math.min(
+                  Math.max(purchaseRiskAnalysis.riskScore, 0),
+                  100
+                )}%`,
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="border-t border-zinc-800 p-6">
+        <p className="text-sm font-medium text-emerald-400">
+          Kullanım Ömrü Tahmini
+        </p>
+
+        <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-5">
+          {[
+            ["Motor", `${lifetimeAnalysis.remainingEngineLifeKm.toLocaleString("tr-TR")} km`],
+            ["Şanzıman", `${lifetimeAnalysis.remainingTransmissionLifeKm.toLocaleString("tr-TR")} km`],
+            ["Kritik Masraf", `%${lifetimeAnalysis.criticalRepairProbability}`],
+            ["Ömür Puanı", `${lifetimeAnalysis.overallLifetimeScore} / 100`],
+            [
+              "Ağır Bakım Riski",
+              lifetimeAnalysis.majorMaintenanceRisk === "high"
+                ? "Yüksek"
+                : lifetimeAnalysis.majorMaintenanceRisk === "medium"
+                  ? "Orta"
+                  : "Düşük",
+            ],
+          ].map(([label, value]) => (
+            <div
+              key={String(label)}
+              className="rounded-xl border border-zinc-800 bg-black p-4"
+            >
+              <p className="text-xs text-zinc-500">{label}</p>
+              <p className="mt-2 font-semibold text-white">{value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="border-t border-zinc-800 p-6">
+        <p className="text-sm font-medium text-emerald-400">
+          Yıllık Sahip Olma Maliyeti
+        </p>
+
+        <h3 className="mt-1 text-xl font-semibold text-white">
+          Tahmini gider analizi
+        </h3>
+
+        <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {[
+            ["Bakım", ownershipCostAnalysis.annualMaintenanceCost],
+            ["Yakıt", ownershipCostAnalysis.annualFuelCost],
+            ["MTV", ownershipCostAnalysis.annualTaxEstimate],
+            ["Sigorta / Kasko", ownershipCostAnalysis.annualInsuranceEstimate],
+          ].map(([label, value]) => (
+            <div
+              key={String(label)}
+              className="rounded-xl border border-zinc-800 bg-black p-4"
+            >
+              <p className="text-xs text-zinc-500">{label}</p>
+              <p className="mt-2 font-semibold text-white">
+                {Number(value).toLocaleString("tr-TR")} TL
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
+            <p className="text-xs text-amber-400">
+              Olası Büyük Onarım
+            </p>
+            <p className="mt-2 font-semibold text-white">
+              {ownershipCostAnalysis.potentialMajorRepairCost.toLocaleString("tr-TR")} TL
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-zinc-800 bg-black p-4">
+            <p className="text-xs text-zinc-500">
+              3 Yıllık Değer Kaybı
+            </p>
+            <p className="mt-2 font-semibold text-white">
+              {ownershipCostAnalysis.threeYearDepreciation.toLocaleString("tr-TR")} TL
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+            <p className="text-xs text-emerald-400">
+              Yıllık Toplam
+            </p>
+            <p className="mt-2 text-lg font-bold text-white">
+              {ownershipCostAnalysis.annualTotalCost.toLocaleString("tr-TR")} TL
+            </p>
+          </div>
+        </div>
+      </div>
 
       <div className="border-t border-zinc-800 p-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
