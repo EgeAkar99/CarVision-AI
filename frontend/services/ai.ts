@@ -978,6 +978,11 @@ export async function analyzeVehicle(
     8
   );
 
+  adjustedScore += Math.min(
+    equipmentAnalysis.length * 2,
+    6
+  );
+
   adjustedScore = Math.max(
     25,
     Math.min(98, Math.round(adjustedScore))

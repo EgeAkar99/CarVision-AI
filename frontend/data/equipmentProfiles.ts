@@ -1,5 +1,6 @@
 import { bmwEquipmentProfiles } from "./equipmentProfiles/bmw";
 import { mercedesEquipmentProfiles } from "./equipmentProfiles/mercedes";
+import { commonEquipmentProfiles } from "./equipmentProfiles/common";
 
 export type EquipmentProfile = {
   id: string;
@@ -14,4 +15,5 @@ export type EquipmentProfile = {
 export const equipmentProfiles: EquipmentProfile[] = [
   ...bmwEquipmentProfiles,
   ...mercedesEquipmentProfiles,
+  ...commonEquipmentProfiles,
 ];

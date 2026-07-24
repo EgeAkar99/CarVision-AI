@@ -34,9 +34,15 @@ export function analyzeEquipment(
 
   return equipmentProfiles
     .filter((profile) => {
+      const profileBrand =
+        profile.brand.toLocaleLowerCase("tr-TR");
+
+      const vehicleBrand =
+        vehicle.brand.toLocaleLowerCase("tr-TR");
+
       if (
-        profile.brand.toLocaleLowerCase("tr-TR") !==
-        vehicle.brand.toLocaleLowerCase("tr-TR")
+        profileBrand !== "*" &&
+        profileBrand !== vehicleBrand
       ) {
         return false;
       }
