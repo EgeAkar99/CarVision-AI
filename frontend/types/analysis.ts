@@ -89,6 +89,8 @@ export type AnalysisResult = {
 
   score: number;
 
+  analysisConfidence: number;
+
   purchaseRecommendation: PurchaseRecommendation;
 
   priceAnalysis: {

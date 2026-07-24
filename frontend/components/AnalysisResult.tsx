@@ -44,6 +44,7 @@ export default function AnalysisResult({
   const {
     vehicle,
     score,
+    analysisConfidence,
     purchaseRecommendation,
     priceAnalysis,
     marketAnalysis,
@@ -260,10 +261,18 @@ export default function AnalysisResult({
         </div>
 
         <div className="rounded-xl border border-zinc-800 bg-black p-4">
-          <p className="text-sm text-zinc-500">AI Güven Puanı</p>
+          <p className="text-sm text-zinc-500">Analiz Güven Skoru</p>
 
           <p className="mt-2 text-xl font-bold text-white">
-            {score} / 100
+            %{analysisConfidence}
+          </p>
+
+          <p className="mt-1 text-xs text-zinc-500">
+            {analysisConfidence >= 80
+              ? "Yüksek güven"
+              : analysisConfidence >= 60
+                ? "Orta güven"
+                : "Sınırlı güven"}
           </p>
 
           <div className="mt-3 h-2 overflow-hidden rounded-full bg-zinc-800">
@@ -271,7 +280,7 @@ export default function AnalysisResult({
               className="h-full rounded-full bg-emerald-500"
               style={{
                 width: `${Math.min(
-                  Math.max(score, 0),
+                  Math.max(analysisConfidence, 0),
                   100
                 )}%`,
               }}

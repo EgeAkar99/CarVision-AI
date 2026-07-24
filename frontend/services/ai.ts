@@ -1028,10 +1028,25 @@ export async function analyzeVehicle(
     Math.min(98, Math.round(adjustedScore))
   );
 
+  const analysisConfidence = Math.max(
+    20,
+    Math.min(
+      98,
+      Math.round(
+        marketAnalysis.confidence * 0.5 +
+          photoAnalysis.coverageScore * 0.25 +
+          (100 - descriptionAnalysis.riskScore) * 0.15 +
+          Math.min(equipmentAnalysis.length * 10, 30) * 0.1
+      )
+    )
+  );
+
   return {
     vehicle,
 
     score: adjustedScore,
+
+    analysisConfidence,
 
     purchaseRecommendation:
       getPurchaseRecommendation(adjustedScore),
