@@ -574,6 +574,26 @@ export default function AnalysisResult({
           </p>
         </article>
 
+        {photoAnalysis.visualFindings.length > 0 && (
+          <div className="mt-5 rounded-xl border border-zinc-700 bg-zinc-950 p-5">
+            <h4 className="font-semibold text-white">
+              Görsel Ekspertiz Bulguları
+            </h4>
+
+            <ul className="mt-3 space-y-2 text-sm text-zinc-300">
+              {photoAnalysis.visualFindings.map((finding, index) => (
+                <li
+                  key={`visual-finding-${index}`}
+                  className="flex gap-3"
+                >
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-400" />
+                  <span>{finding}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {photoAnalysis.warnings.length > 0 && (
           <div className="mt-5 rounded-xl border border-amber-500/20 bg-amber-500/5 p-5">
             <h4 className="font-semibold text-amber-400">
@@ -671,9 +691,29 @@ export default function AnalysisResult({
             AI Yorumu
           </h3>
 
-          <p className="mt-3 leading-7 text-zinc-400">
-            {aiComment}
-          </p>
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            {aiComment
+              .split(" | ")
+              .map((section, index) => {
+                const [title, ...contentParts] =
+                  section.split(":");
+
+                return (
+                  <div
+                    key={`ai-section-${index}`}
+                    className="rounded-lg border border-zinc-800 bg-zinc-950 p-4"
+                  >
+                    <h4 className="font-medium text-white">
+                      {title}
+                    </h4>
+
+                    <p className="mt-2 text-sm leading-6 text-zinc-400">
+                      {contentParts.join(":").trim()}
+                    </p>
+                  </div>
+                );
+              })}
+          </div>
         </article>
 
         <article className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5">

@@ -79,6 +79,8 @@ export type PhotoAnalysis = {
 
   positiveSignals: string[];
 
+  visualFindings: string[];
+
   summary: string;
 };
 

@@ -552,7 +552,12 @@ function createAiComment(
         ? "Kilometre seviyesi nedeniyle periyodik bakım ve parça değişim kayıtları doğrulanmalı."
         : "Kilometre seviyesi yaşına göre makul görünse de kayıtlarla doğrulanmalı.";
 
-  return `${vehicleName} için ${price.toLocaleString("tr-TR")} TL ilan fiyatı değerlendirildi. ${marketReference} ${priceComment} ${scoreComment} ${mileageComment} Nihai karar bağımsız ekspertiz, tramer ve servis geçmişi kontrolünden sonra verilmelidir.`;
+  return [
+    `Fiyat Analizi: ${vehicleName} için ${price.toLocaleString("tr-TR")} TL ilan fiyatı değerlendirildi. ${marketReference} ${priceComment}`,
+    `Mekanik Değerlendirme: ${mileageComment}`,
+    `Donanım Değerlendirmesi: İlanda tespit edilen donanımlar kullanım konforu ve ikinci el değerini etkileyebilir; tüm fonksiyonlar fiziksel olarak test edilmelidir.`,
+    `Genel Sonuç: ${scoreComment} Nihai karar bağımsız ekspertiz, tramer ve servis geçmişi kontrolünden sonra verilmelidir.`,
+  ].join(" | ");
 }
 
 function createNegotiationAdvice(
@@ -867,6 +872,40 @@ function analyzePhotos(
     Math.min(100, Math.round(coverageScore))
   );
 
+  const visualFindings: string[] = [];
+
+  if (photoCount >= 12) {
+    visualFindings.push(
+      "Fotoğraf sayısı genel gövde ve kondisyon incelemesi için yeterli seviyede."
+    );
+  }
+
+  if (exteriorImages.length >= 6) {
+    visualFindings.push(
+      "Dış gövdenin birden fazla açıdan görüntülendiği tespit edildi."
+    );
+  } else {
+    visualFindings.push(
+      "Kaput, tampon, çamurluk ve kapı hizaları fotoğraflardan güvenilir şekilde değerlendirilemiyor."
+    );
+  }
+
+  if (interiorImages.length >= 3) {
+    visualFindings.push(
+      "Direksiyon, koltuk ve iç trim yıpranmasını değerlendirebilecek iç mekân fotoğrafları mevcut."
+    );
+  } else {
+    visualFindings.push(
+      "Direksiyon, koltuk ve iç trim yıpranması için yeterli iç mekân fotoğrafı bulunamadı."
+    );
+  }
+
+  if (photoCount < 8) {
+    visualFindings.push(
+      "Jant, lastik, motor bölmesi ve bagaj için ek fotoğraf istenmeli."
+    );
+  }
+
   const conditionLevel =
     photoCount === 0
       ? "unknown"
@@ -893,6 +932,7 @@ function analyzePhotos(
     conditionLevel,
     warnings: [...new Set(warnings)],
     positiveSignals: [...new Set(positiveSignals)],
+    visualFindings: [...new Set(visualFindings)],
     summary,
   };
 }
