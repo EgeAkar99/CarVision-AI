@@ -653,9 +653,9 @@ export default function AnalysisResult({
         />
 
         <ResultList
-          title="Kronik Sorunlar"
+          title="Motor ve Kronik Riskler"
           items={chronicProblems}
-          emptyMessage="Bilinen önemli bir kronik sorun bulunamadı."
+          emptyMessage="Bu araç için eşleşen özel motor veya kronik risk bulunamadı."
         />
 
         <ResultList

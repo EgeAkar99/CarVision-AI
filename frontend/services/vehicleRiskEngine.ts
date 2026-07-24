@@ -44,6 +44,7 @@ function matchesProfile(
       vehicle.title,
       vehicle.engineVolume,
       vehicle.enginePower,
+      vehicle.description,
     ]
       .filter(Boolean)
       .join(" ")
@@ -84,6 +85,10 @@ function matchesProfile(
       profile.transmissionKeywords
     )
   ) {
+    return false;
+  }
+
+  if (!includesAny(modelText, profile.engineKeywords)) {
     return false;
   }
 

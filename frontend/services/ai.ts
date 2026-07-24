@@ -505,68 +505,54 @@ function createAiComment(
   differencePercentage: number,
   marketAnalysis: AnalysisResult["marketAnalysis"]
 ): string {
-  const brand = getString(
-    vehicle,
-    ["brand", "make", "marka"],
-    "Bu araç"
-  );
+  const brand = getString(vehicle, ["brand", "make", "marka"], "Araç");
   const model = getString(vehicle, ["model"]);
-  const mileage = getNumber(vehicle, [
-    "mileage",
-    "kilometers",
-    "kilometre",
-    "km",
-  ]);
+  const year = getNumber(vehicle, ["year", "modelYear", "yil"]);
+  const mileage = getNumber(vehicle, ["mileage", "kilometers", "kilometre", "km"]);
+  const price = getNumber(vehicle, ["price", "listingPrice", "fiyat"]);
+  const vehicleName = [brand, model, year].filter(Boolean).join(" ");
 
-  const vehicleName = `${brand} ${model}`.trim();
+  const marketReference =
+    marketAnalysis.comparableCount >= 3
+      ? `${marketAnalysis.comparableCount} emsal ilanın medyanı ${marketAnalysis.medianPrice.toLocaleString("tr-TR")} TL, ortalaması ${marketAnalysis.averagePrice.toLocaleString("tr-TR")} TL ve analiz güveni %${marketAnalysis.confidence}.`
+      : "Yeterli sayıda gerçek emsal bulunamadığı için piyasa değeri araç özelliklerinden tahmin edildi.";
 
   let priceComment: string;
 
-  if (differencePercentage <= -8) {
+  if (differencePercentage <= -10) {
     priceComment =
-      "İlan fiyatı tahmini piyasa değerinin belirgin şekilde altında görünüyor.";
-  } else if (differencePercentage <= -3) {
+      "Fiyat emsal piyasanın belirgin altında. Bu durum alım fırsatı olabileceği gibi gizli hasar, acil satış veya eksik ilan bilgisi ihtimalini de artırır.";
+  } else if (differencePercentage <= -4) {
     priceComment =
-      "İlan fiyatı tahmini piyasa değerinin bir miktar altında.";
-  } else if (differencePercentage < 6) {
+      "Fiyat emsal piyasanın altında ve ekspertiz sonucu temiz çıkarsa avantajlı bir alım olabilir.";
+  } else if (differencePercentage < 5) {
     priceComment =
-      "İlan fiyatı tahmini piyasa değeriyle yakın seviyede.";
+      "Fiyat emsal piyasa aralığıyla uyumlu. Kararı aracın kondisyonu ve bakım geçmişi belirlemeli.";
+  } else if (differencePercentage < 12) {
+    priceComment =
+      "Fiyat emsal piyasanın üzerinde. Donanım, hasarsızlık veya düşük kilometre gibi somut bir gerekçe yoksa pazarlık yapılmalı.";
   } else {
     priceComment =
-      "İlan fiyatı tahmini piyasa değerinin üzerinde görünüyor.";
+      "Fiyat emsal piyasanın belirgin üzerinde. Güçlü bir fiyat indirimi olmadan alternatif ilanlar daha mantıklı görünüyor.";
   }
 
-  let conditionComment: string;
-
-  if (score >= 85) {
-    conditionComment =
-      "İlan bilgileri genel olarak olumlu ve araç güçlü bir seçenek oluşturuyor.";
-  } else if (score >= 70) {
-    conditionComment =
-      "Araç değerlendirilebilir ancak bakım ve ekspertiz sonuçları karar üzerinde belirleyici olmalı.";
-  } else if (score >= 55) {
-    conditionComment =
-      "Araçta dikkat edilmesi gereken riskler bulunuyor ve detaylı ekspertiz gerekiyor.";
-  } else {
-    conditionComment =
-      "Mevcut veriler aracı riskli gösteriyor; alternatif ilanlara bakılması daha doğru olabilir.";
-  }
+  const scoreComment =
+    score >= 85
+      ? "Genel puan aracı güçlü bir aday olarak gösteriyor."
+      : score >= 70
+        ? "Genel puan aracı değerlendirilebilir seviyede gösteriyor."
+        : score >= 55
+          ? "Genel puan önemli kontroller yapılmadan karar verilmemesi gerektiğini gösteriyor."
+          : "Genel puan risk seviyesinin yüksek olduğunu ve alternatiflerin incelenmesi gerektiğini gösteriyor.";
 
   const mileageComment =
-    mileage > 220_000
-      ? " Yüksek kilometre nedeniyle motor, turbo, şanzıman ve bakım geçmişi özellikle incelenmeli."
-      : mileage > 140_000
-        ? " Kilometre seviyesi nedeniyle düzenli bakım kayıtları doğrulanmalı."
-        : " Kilometre seviyesi ilan bilgilerine göre makul görünüyor.";
+    mileage >= 220_000
+      ? "Kilometre yüksek olduğu için motor, turbo, enjektör, şanzıman ve ağır bakım kayıtları kritik."
+      : mileage >= 140_000
+        ? "Kilometre seviyesi nedeniyle periyodik bakım ve parça değişim kayıtları doğrulanmalı."
+        : "Kilometre seviyesi yaşına göre makul görünse de kayıtlarla doğrulanmalı.";
 
-  const comparableComment =
-    marketAnalysis.comparableCount >= 3
-      ? ` Değerlendirme ${marketAnalysis.comparableCount} emsal ilan üzerinden, %${marketAnalysis.confidence} güven oranıyla yapıldı. Emsal medyan fiyatı ${marketAnalysis.medianPrice.toLocaleString(
-          "tr-TR"
-        )} TL olarak hesaplandı.`
-      : " Yeterli sayıda gerçek emsal bulunamadığı için piyasa tahmini araç özelliklerine göre hesaplandı.";
-
-  return `${vehicleName} için yapılan değerlendirmede ${priceComment} ${conditionComment}${mileageComment}${comparableComment}`;
+  return `${vehicleName} için ${price.toLocaleString("tr-TR")} TL ilan fiyatı değerlendirildi. ${marketReference} ${priceComment} ${scoreComment} ${mileageComment} Nihai karar bağımsız ekspertiz, tramer ve servis geçmişi kontrolünden sonra verilmelidir.`;
 }
 
 function createNegotiationAdvice(
@@ -574,38 +560,23 @@ function createNegotiationAdvice(
   estimatedMarketPrice: number,
   score: number
 ): string {
-  const difference = listingPrice - estimatedMarketPrice;
+  const marketDifference = Math.max(0, listingPrice - estimatedMarketPrice);
 
-  let minimumDiscountRate = 0.02;
-  let maximumDiscountRate = 0.04;
+  let baseRate = score >= 80 ? 0.025 : score >= 65 ? 0.04 : 0.06;
+  const marketRate = marketDifference / Math.max(listingPrice, 1);
 
-  if (score < 70) {
-    minimumDiscountRate = 0.04;
-    maximumDiscountRate = 0.07;
-  }
-
-  if (difference > 0) {
-    minimumDiscountRate += Math.min(
-      difference / Math.max(listingPrice, 1),
-      0.05
-    );
-    maximumDiscountRate += Math.min(
-      difference / Math.max(listingPrice, 1),
-      0.06
-    );
-  }
+  const minimumRate = Math.min(0.15, baseRate + marketRate * 0.6);
+  const maximumRate = Math.min(0.20, baseRate + 0.03 + marketRate);
 
   const minimumDiscount =
-    Math.round((listingPrice * minimumDiscountRate) / 5_000) * 5_000;
-
+    Math.round((listingPrice * minimumRate) / 5_000) * 5_000;
   const maximumDiscount =
-    Math.round((listingPrice * maximumDiscountRate) / 5_000) * 5_000;
+    Math.round((listingPrice * maximumRate) / 5_000) * 5_000;
 
-  return `Ekspertiz bulguları, yaklaşan bakımlar ve piyasa farkı gerekçe gösterilerek ${minimumDiscount.toLocaleString(
-    "tr-TR"
-  )} TL ile ${maximumDiscount.toLocaleString(
-    "tr-TR"
-  )} TL arasında pazarlık denenebilir.`;
+  const minimumOffer = Math.max(0, listingPrice - maximumDiscount);
+  const maximumOffer = Math.max(0, listingPrice - minimumDiscount);
+
+  return `İlk teklif ${minimumOffer.toLocaleString("tr-TR")} TL civarında verilebilir. Ekspertiz ve bakım durumuna göre ${maximumOffer.toLocaleString("tr-TR")} TL seviyesine kadar çıkılabilir. Hedef pazarlık indirimi ${minimumDiscount.toLocaleString("tr-TR")}–${maximumDiscount.toLocaleString("tr-TR")} TL aralığında olmalıdır.`;
 }
 
 function createImportantChecks(vehicle: VehicleData): string[] {
@@ -986,13 +957,39 @@ export async function analyzeVehicle(
   const equipmentAnalysis =
     analyzeEquipment(vehicle);
 
+  let adjustedScore = score;
+
+  if (descriptionAnalysis.riskLevel === "high") {
+    adjustedScore -= 10;
+  } else if (descriptionAnalysis.riskLevel === "medium") {
+    adjustedScore -= 4;
+  } else {
+    adjustedScore += 2;
+  }
+
+  if (photoAnalysis.coverageScore >= 75) {
+    adjustedScore += 2;
+  } else if (photoAnalysis.coverageScore < 40) {
+    adjustedScore -= 3;
+  }
+
+  adjustedScore -= Math.min(
+    vehicleSpecificRisks.length * 2,
+    8
+  );
+
+  adjustedScore = Math.max(
+    25,
+    Math.min(98, Math.round(adjustedScore))
+  );
+
   return {
     vehicle,
 
-    score,
+    score: adjustedScore,
 
     purchaseRecommendation:
-      getPurchaseRecommendation(score),
+      getPurchaseRecommendation(adjustedScore),
 
     priceAnalysis: {
       listingPrice,
@@ -1038,7 +1035,7 @@ export async function analyzeVehicle(
 
     aiComment: createAiComment(
       vehicleData,
-      score,
+      adjustedScore,
       differencePercentage,
       marketAnalysis
     ),
@@ -1046,7 +1043,7 @@ export async function analyzeVehicle(
     negotiationAdvice: createNegotiationAdvice(
       listingPrice,
       estimatedMarketPrice,
-      score
+      adjustedScore
     ),
 
     importantChecks: [

@@ -99,13 +99,28 @@ function normalizeImageUrl(value) {
   }
 }
 
+function normalizePhotoKey(url) {
+  try {
+    const parsed = new URL(url);
+    const name = parsed.pathname
+      .split("/")
+      .pop()
+      ?.replace(/_(?:small|medium|large|thumb|thumbnail|[0-9]+x[0-9]+)(?=\.)/gi, "")
+      .toLowerCase();
+
+    return name || parsed.pathname.toLowerCase();
+  } catch {
+    return url.toLowerCase();
+  }
+}
+
 function getImageSource(element) {
   const candidates = [
     element.getAttribute("data-src"),
     element.getAttribute("data-original"),
     element.getAttribute("data-lazy"),
     element.getAttribute("src"),
-    element.getAttribute("srcset"),
+    element.getAttribute("srcset")?.split(",")[0]?.trim()?.split(" ")[0],
   ];
 
   for (const candidate of candidates) {
@@ -149,58 +164,129 @@ function getMainImage() {
   return "";
 }
 
+function upgradeImageUrl(url) {
+  return url
+    .replace(/\/thmb_/i, "/x5_")
+    .replace(/\/(?:x1|x2|x3|x4)_/i, "/x5_");
+}
+
 function getImages() {
   const urls = new Set();
 
-  const elements = document.querySelectorAll(
-    "#showcaseDetailMainImage, " +
-      ".classifiedDetailMainPhoto img, " +
-      ".classifiedDetailMainPhoto source, " +
-      ".classifiedDetailPhotos img, " +
-      ".classifiedDetailPhotos source, " +
-      ".classifiedDetailThumbList img, " +
-      ".classifiedDetailThumbList source, " +
-      ".classifiedDetailThumbList a, " +
-      "ul[class*='thumb'] img, " +
-      "ul[class*='gallery'] img, " +
-      "[data-testid='gallery'] img, " +
-      "[data-testid='gallery'] source"
+  const links = document.querySelectorAll(
+    ".classifiedDetailThumbList a[href]"
   );
 
-  for (const element of elements) {
-    const source = getImageSource(element);
-
-    if (source) {
-      urls.add(source);
-    }
+  for (const link of links) {
+    const image = link.querySelector("img");
 
     const href = normalizeImageUrl(
-      element.getAttribute("href") || ""
+      link.getAttribute("href") || ""
     );
 
-    if (href && /\.(jpg|jpeg|png|webp)(\?|$)/i.test(href)) {
-      urls.add(href);
+    const source = image
+      ? getImageSource(image)
+      : "";
+
+    const selected =
+      [
+        link.getAttribute("data-original"),
+        link.getAttribute("data-src"),
+        link.getAttribute("data-image"),
+        link.getAttribute("data-large"),
+        href,
+        source,
+      ]
+        .map((value) => normalizeImageUrl(value || ""))
+        .find((value) =>
+          /\.(jpg|jpeg|png|webp)(\?|$)/i.test(value)
+        ) || "";
+
+    if (selected) {
+      urls.add(
+        selected
+          .replace("/thmb_", "/x5_")
+          .replace("/x1_", "/x5_")
+          .replace("/x2_", "/x5_")
+          .replace("/x3_", "/x5_")
+          .replace("/x4_", "/x5_")
+      );
+    }
+  }
+
+  if (urls.size === 0) {
+    const images = document.querySelectorAll(
+      ".classifiedDetailThumbList img"
+    );
+
+    for (const image of images) {
+      const source = getImageSource(image);
+
+      if (source) {
+        urls.add(source);
+      }
     }
   }
 
   const mainImage = getMainImage();
 
-  if (mainImage) {
+  if (urls.size === 0 && mainImage) {
     urls.add(mainImage);
   }
 
-  return [...urls].slice(0, 30);
+  return [...urls];
+}
+
+function isInteriorImage(url) {
+  const keywords =
+    /interior|iç\s*mek[aâ]n|kabin|kokpit|cockpit|dashboard|torpido|direksiyon|steering|koltuk|seat|vites|console|konsol|pedal/i;
+
+  if (keywords.test(url)) {
+    return true;
+  }
+
+  const elements = document.querySelectorAll(
+    "img, source, a[href]"
+  );
+
+  for (const element of elements) {
+    const source =
+      getImageSource(element) ||
+      normalizeImageUrl(
+        element.getAttribute("href") || ""
+      );
+
+    if (!source || source !== url) {
+      continue;
+    }
+
+    const context = [
+      element.getAttribute("alt"),
+      element.getAttribute("title"),
+      element.getAttribute("aria-label"),
+      element.getAttribute("data-title"),
+      element.getAttribute("data-caption"),
+      element.closest("li, a, figure, div")
+        ?.textContent,
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    if (keywords.test(context)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 const locationData = getLocationParts();
 const allImages = getImages();
 
-const interiorImages = allImages.filter((url) =>
-  /interior|kabin|kokpit|torpido|direksiyon|koltuk|vites/i.test(url)
-);
+const interiorImages = allImages.filter(isInteriorImage);
 
-const exteriorImages = allImages.filter(
-  (url) => !interiorImages.includes(url)
+const exteriorImages = allImages.filter((url) =>
+  /exterior|dis|ön|on|arka|yan|front|rear|side|outside/i.test(url)
 );
 
 const vehicle = {
