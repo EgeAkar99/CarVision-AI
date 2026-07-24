@@ -1,5 +1,6 @@
 import type {
   AnalysisResult as AnalysisResultType,
+  MarketPosition,
   PriceEvaluation,
   PurchaseRecommendation,
 } from "../types/analysis";
@@ -24,6 +25,14 @@ const priceEvaluationLabels: Record<PriceEvaluation, string> = {
   fair: "Piyasa Değerinde",
   expensive: "Pahalı",
   very_expensive: "Çok Pahalı",
+};
+
+const marketPositionLabels: Record<MarketPosition, string> = {
+  excellent_deal: "Mükemmel Fırsat",
+  strong_deal: "Güçlü Fırsat",
+  fair_price: "Adil Fiyat",
+  slightly_expensive: "Biraz Pahalı",
+  overpriced: "Yüksek Fiyatlı",
 };
 
 function formatPrice(price: number) {
@@ -51,6 +60,8 @@ export default function AnalysisResult({
     ownershipCostAnalysis,
     lifetimeAnalysis,
     purchaseRiskAnalysis,
+    competitivePositioning,
+    negotiationAnalysis,
     descriptionAnalysis,
     photoAnalysis,
     chronicProblems,
@@ -421,6 +432,66 @@ export default function AnalysisResult({
               {ownershipCostAnalysis.annualTotalCost.toLocaleString("tr-TR")} TL
             </p>
           </div>
+        </div>
+      </div>
+
+      <div className="border-t border-zinc-800 p-6">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-medium text-emerald-400">
+              Rekabet Konumlandırması
+            </p>
+
+            <h3 className="mt-1 text-xl font-semibold text-white">
+              {marketPositionLabels[
+                competitivePositioning.marketPosition
+              ]}
+            </h3>
+
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-500">
+              {competitivePositioning.summary}
+            </p>
+          </div>
+
+          <div className="mt-3 flex h-24 w-24 shrink-0 flex-col items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10 sm:mt-0">
+            <span className="text-2xl font-bold text-white">
+              {competitivePositioning.priceAdvantageScore}
+            </span>
+            <span className="text-xs text-emerald-400">
+              Fiyat Skoru
+            </span>
+          </div>
+        </div>
+
+        <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <MarketStatCard
+            label="Fiyat Sıralaması"
+            value={
+              competitivePositioning.priceRank > 0
+                ? `${competitivePositioning.priceRank}. / ${competitivePositioning.totalComparableCount}`
+                : "Veri yok"
+            }
+          />
+
+          <MarketStatCard
+            label="Daha Ucuz Olduğu Emsaller"
+            value={`%${competitivePositioning.cheaperThanPercentage}`}
+            highlighted
+          />
+
+          <MarketStatCard
+            label="Fiyat Yüzdelik Dilimi"
+            value={`%${competitivePositioning.pricePercentile}`}
+          />
+
+          <MarketStatCard
+            label="Piyasa Konumu"
+            value={
+              marketPositionLabels[
+                competitivePositioning.marketPosition
+              ]
+            }
+          />
         </div>
       </div>
 
@@ -860,13 +931,79 @@ export default function AnalysisResult({
         </article>
 
         <article className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5">
-          <h3 className="text-lg font-semibold text-emerald-400">
-            Pazarlık Tavsiyesi
-          </h3>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-medium text-emerald-400">
+                Akıllı Pazarlık Motoru
+              </p>
 
-          <p className="mt-3 leading-7 text-zinc-300">
-            {negotiationAdvice}
+              <h3 className="mt-1 text-lg font-semibold text-white">
+                Pazarlık Gücü: %{negotiationAnalysis.negotiationPower}
+              </h3>
+            </div>
+
+            <div className="rounded-full border border-emerald-500/20 bg-black px-4 py-2 text-sm font-semibold text-emerald-400">
+              {formatPrice(negotiationAnalysis.negotiationMargin)} pazarlık alanı
+            </div>
+          </div>
+
+          <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
+            <MarketStatCard
+              label="İlk Teklif"
+              value={formatPrice(
+                negotiationAnalysis.suggestedOfferPrice
+              )}
+            />
+
+            <MarketStatCard
+              label="Hedef Alım Fiyatı"
+              value={formatPrice(
+                negotiationAnalysis.targetPurchasePrice
+              )}
+              highlighted
+            />
+
+            <MarketStatCard
+              label="Maksimum Ödeme"
+              value={formatPrice(
+                negotiationAnalysis.maximumPurchasePrice
+              )}
+            />
+          </div>
+
+          <p className="mt-5 leading-7 text-zinc-300">
+            {negotiationAnalysis.strategy}
           </p>
+
+          <div className="mt-5">
+            <h4 className="text-sm font-semibold text-white">
+              Pazarlık Gerekçeleri
+            </h4>
+
+            <ul className="mt-3 space-y-2">
+              {negotiationAnalysis.arguments.map(
+                (argument, index) => (
+                  <li
+                    key={`negotiation-argument-${index}`}
+                    className="flex gap-3 text-sm leading-6 text-zinc-400"
+                  >
+                    <span className="text-emerald-400">•</span>
+                    <span>{argument}</span>
+                  </li>
+                )
+              )}
+            </ul>
+          </div>
+
+          <div className="mt-5 rounded-lg border border-zinc-800 bg-black p-4">
+            <p className="text-xs font-medium text-zinc-500">
+              Genel Tavsiye
+            </p>
+
+            <p className="mt-2 text-sm leading-6 text-zinc-300">
+              {negotiationAdvice}
+            </p>
+          </div>
         </article>
 
         {vehicle.description && (

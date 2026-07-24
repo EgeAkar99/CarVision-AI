@@ -3,7 +3,10 @@ import type {
   ComparableVehicle,
 } from "../types/analysis";
 import type { Vehicle } from "../types/vehicle";
-import { createComparableMarketAnalysis } from "./comparables";
+import {
+  createComparableMarketAnalysis,
+  createCompetitivePositioningAnalysis,
+} from "./comparables";
 import { getVehicleSpecificRisks } from "./vehicleRiskEngine";
 import { analyzeEquipment } from "./equipment";
 import { createComparableProvider } from "../providers/comparableProviderFactory";
@@ -503,7 +506,9 @@ function createAiComment(
   vehicle: VehicleData,
   score: number,
   differencePercentage: number,
-  marketAnalysis: AnalysisResult["marketAnalysis"]
+  marketAnalysis: AnalysisResult["marketAnalysis"],
+  competitivePositioning: AnalysisResult["competitivePositioning"],
+  negotiationAnalysis: AnalysisResult["negotiationAnalysis"]
 ): string {
   const brand = getString(vehicle, ["brand", "make", "marka"], "Araç");
   const model = getString(vehicle, ["model"]);
@@ -552,9 +557,19 @@ function createAiComment(
         ? "Kilometre seviyesi nedeniyle periyodik bakım ve parça değişim kayıtları doğrulanmalı."
         : "Kilometre seviyesi yaşına göre makul görünse de kayıtlarla doğrulanmalı.";
 
+  const competitiveComment =
+    competitivePositioning.totalComparableCount > 0
+      ? `Araç ${competitivePositioning.totalComparableCount} emsal içinde fiyat açısından ${competitivePositioning.priceRank}. sırada ve emsallerin %${competitivePositioning.cheaperThanPercentage}'inden daha ucuz. Fiyat avantaj skoru ${competitivePositioning.priceAdvantageScore}/100.`
+      : "Rekabet sıralaması için yeterli emsal verisi bulunamadı.";
+
+  const negotiationComment =
+    `Önerilen ilk teklif ${negotiationAnalysis.suggestedOfferPrice.toLocaleString("tr-TR")} TL, hedef alım fiyatı ${negotiationAnalysis.targetPurchasePrice.toLocaleString("tr-TR")} TL ve aşılmaması önerilen maksimum fiyat ${negotiationAnalysis.maximumPurchasePrice.toLocaleString("tr-TR")} TL.`;
+
   return [
     `Fiyat Analizi: ${vehicleName} için ${price.toLocaleString("tr-TR")} TL ilan fiyatı değerlendirildi. ${marketReference} ${priceComment}`,
+    `Rekabet Konumu: ${competitiveComment}`,
     `Mekanik Değerlendirme: ${mileageComment}`,
+    `Pazarlık Stratejisi: ${negotiationComment} ${negotiationAnalysis.strategy}`,
     `Donanım Değerlendirmesi: İlanda tespit edilen donanımlar kullanım konforu ve ikinci el değerini etkileyebilir; tüm fonksiyonlar fiziksel olarak test edilmelidir.`,
     `Genel Sonuç: ${scoreComment} Nihai karar bağımsız ekspertiz, tramer ve servis geçmişi kontrolünden sonra verilmelidir.`,
   ].join(" | ");
@@ -582,6 +597,176 @@ function createNegotiationAdvice(
   const maximumOffer = Math.max(0, listingPrice - minimumDiscount);
 
   return `İlk teklif ${minimumOffer.toLocaleString("tr-TR")} TL civarında verilebilir. Ekspertiz ve bakım durumuna göre ${maximumOffer.toLocaleString("tr-TR")} TL seviyesine kadar çıkılabilir. Hedef pazarlık indirimi ${minimumDiscount.toLocaleString("tr-TR")}–${maximumDiscount.toLocaleString("tr-TR")} TL aralığında olmalıdır.`;
+}
+
+function createNegotiationAnalysis(args: {
+  listingPrice: number;
+  estimatedMarketPrice: number;
+  marketConfidence: number;
+  priceAdvantageScore: number;
+  purchaseRiskScore: number;
+  descriptionRiskScore: number;
+  chronicRiskCount: number;
+}): AnalysisResult["negotiationAnalysis"] {
+  const {
+    listingPrice,
+    estimatedMarketPrice,
+    marketConfidence,
+    priceAdvantageScore,
+    purchaseRiskScore,
+    descriptionRiskScore,
+    chronicRiskCount,
+  } = args;
+
+  const riskDiscountRate =
+    Math.min(
+      0.12,
+      purchaseRiskScore * 0.0005 +
+        descriptionRiskScore * 0.00025 +
+        chronicRiskCount * 0.005
+    );
+
+  const marketDiscountRate =
+    listingPrice > estimatedMarketPrice
+      ? Math.min(
+          0.15,
+          (listingPrice - estimatedMarketPrice) /
+            Math.max(listingPrice, 1)
+        )
+      : 0;
+
+  const initialDiscountRate = Math.min(
+    0.18,
+    Math.max(
+      0.03,
+      0.04 + riskDiscountRate + marketDiscountRate
+    )
+  );
+
+  const targetDiscountRate = Math.min(
+    initialDiscountRate,
+    Math.max(
+      0.02,
+      initialDiscountRate * 0.65
+    )
+  );
+
+  const maximumDiscountRate = Math.max(
+    0,
+    Math.min(
+      targetDiscountRate * 0.4,
+      listingPrice > estimatedMarketPrice
+        ? (listingPrice - estimatedMarketPrice) /
+            Math.max(listingPrice, 1)
+        : 0.03
+    )
+  );
+
+  const roundToFiveThousand = (value: number) =>
+    Math.max(
+      0,
+      Math.round(value / 5_000) * 5_000
+    );
+
+  const suggestedOfferPrice = roundToFiveThousand(
+    listingPrice * (1 - initialDiscountRate)
+  );
+
+  const targetPurchasePrice = roundToFiveThousand(
+    Math.min(
+      listingPrice * (1 - targetDiscountRate),
+      estimatedMarketPrice
+    )
+  );
+
+  const maximumPurchasePrice = roundToFiveThousand(
+    Math.min(
+      listingPrice * (1 - maximumDiscountRate),
+      estimatedMarketPrice * 1.02
+    )
+  );
+
+  const negotiationMargin = Math.max(
+    0,
+    listingPrice - targetPurchasePrice
+  );
+
+  let negotiationPower = 50;
+
+  negotiationPower += Math.max(
+    0,
+    70 - priceAdvantageScore
+  ) * 0.35;
+
+  negotiationPower += purchaseRiskScore * 0.2;
+  negotiationPower += descriptionRiskScore * 0.15;
+  negotiationPower += chronicRiskCount * 3;
+  negotiationPower += Math.max(
+    0,
+    75 - marketConfidence
+  ) * 0.1;
+
+  negotiationPower = Math.max(
+    15,
+    Math.min(95, Math.round(negotiationPower))
+  );
+
+  const argumentsList: string[] = [];
+
+  if (listingPrice > estimatedMarketPrice) {
+    argumentsList.push(
+      `İlan fiyatı tahmini piyasa değerinin ${Math.round(
+        listingPrice - estimatedMarketPrice
+      ).toLocaleString("tr-TR")} TL üzerinde.`
+    );
+  }
+
+  if (purchaseRiskScore >= 55) {
+    argumentsList.push(
+      "Satın alma risk skoru yüksek olduğu için ekspertiz sonrası ek indirim talep edilmeli."
+    );
+  }
+
+  if (descriptionRiskScore >= 40) {
+    argumentsList.push(
+      "İlan açıklamasındaki eksik veya riskli ifadeler pazarlık gerekçesi olarak kullanılabilir."
+    );
+  }
+
+  if (chronicRiskCount > 0) {
+    argumentsList.push(
+      `${chronicRiskCount} adet araç özel risk bulunduğu için olası bakım maliyetleri fiyata yansıtılmalı.`
+    );
+  }
+
+  if (marketConfidence < 65) {
+    argumentsList.push(
+      "Emsal güveni sınırlı olduğu için fiyat kesinleştirilmeden önce ek ilan karşılaştırması yapılmalı."
+    );
+  }
+
+  if (argumentsList.length === 0) {
+    argumentsList.push(
+      "Araç piyasa seviyesinde görünüyor; pazarlık servis geçmişi, lastikler ve yaklaşan bakımlar üzerinden yürütülmeli."
+    );
+  }
+
+  const strategy =
+    negotiationPower >= 75
+      ? "Güçlü pazarlık yapılabilir. İlk teklif düşük tutulmalı ve ekspertiz bulguları üzerinden ilerlenmelidir."
+      : negotiationPower >= 55
+        ? "Orta seviyede pazarlık yapılabilir. Piyasa farkı ve bakım maliyetleri öne çıkarılmalıdır."
+        : "Pazarlık alanı sınırlı görünüyor. Makul bir teklif verilip maksimum fiyat aşılmamalıdır.";
+
+  return {
+    suggestedOfferPrice,
+    targetPurchasePrice,
+    maximumPurchasePrice,
+    negotiationMargin,
+    negotiationPower,
+    strategy,
+    arguments: argumentsList,
+  };
 }
 
 function createImportantChecks(vehicle: VehicleData): string[] {
@@ -1169,6 +1354,12 @@ export async function analyzeVehicle(
       ? marketAnalysis.medianPrice
       : calculatedMarketPrice;
 
+  const competitivePositioning =
+    createCompetitivePositioningAnalysis(
+      listingPrice,
+      marketAnalysis
+    );
+
   const difference =
     listingPrice - estimatedMarketPrice;
 
@@ -1220,6 +1411,21 @@ export async function analyzeVehicle(
       marketConfidence: marketAnalysis.confidence,
       damageRecord: getNumber(vehicleData, ["damageRecord","tramer","damageAmount"]),
       chronicRiskCount: vehicleSpecificRisks.length,
+    });
+
+  const negotiationAnalysis =
+    createNegotiationAnalysis({
+      listingPrice,
+      estimatedMarketPrice,
+      marketConfidence: marketAnalysis.confidence,
+      priceAdvantageScore:
+        competitivePositioning.priceAdvantageScore,
+      purchaseRiskScore:
+        purchaseRiskAnalysis.riskScore,
+      descriptionRiskScore:
+        descriptionAnalysis.riskScore,
+      chronicRiskCount:
+        vehicleSpecificRisks.length,
     });
 
   let adjustedScore = score;
@@ -1294,6 +1500,10 @@ export async function analyzeVehicle(
 
     purchaseRiskAnalysis,
 
+    competitivePositioning,
+
+    negotiationAnalysis,
+
     descriptionAnalysis,
 
     photoAnalysis,
@@ -1328,7 +1538,9 @@ export async function analyzeVehicle(
       vehicleData,
       adjustedScore,
       differencePercentage,
-      marketAnalysis
+      marketAnalysis,
+      competitivePositioning,
+      negotiationAnalysis
     ),
 
     negotiationAdvice: createNegotiationAdvice(

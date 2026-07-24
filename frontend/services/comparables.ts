@@ -1,6 +1,8 @@
 import type {
   ComparableMarketAnalysis,
   ComparableVehicle,
+  CompetitivePositioningAnalysis,
+  MarketPosition,
 } from "../types/analysis";
 import type { Vehicle } from "../types/vehicle";
 
@@ -479,3 +481,147 @@ export function createComparableMarketAnalysis(
       : 45,
   };
 }
+
+function determineMarketPosition(
+  priceAdvantageScore: number
+): MarketPosition {
+  if (priceAdvantageScore >= 85) {
+    return "excellent_deal";
+  }
+
+  if (priceAdvantageScore >= 70) {
+    return "strong_deal";
+  }
+
+  if (priceAdvantageScore >= 45) {
+    return "fair_price";
+  }
+
+  if (priceAdvantageScore >= 25) {
+    return "slightly_expensive";
+  }
+
+  return "overpriced";
+}
+
+function createPositioningSummary(
+  priceRank: number,
+  totalComparableCount: number,
+  cheaperThanPercentage: number,
+  marketPosition: MarketPosition
+): string {
+  const positionLabels: Record<MarketPosition, string> = {
+    excellent_deal: "çok güçlü bir fiyat avantajına sahip",
+    strong_deal: "piyasaya göre avantajlı",
+    fair_price: "piyasa seviyesinde",
+    slightly_expensive: "piyasanın bir miktar üzerinde",
+    overpriced: "emsallerine göre yüksek fiyatlı",
+  };
+
+  return `İlan, ${totalComparableCount} emsal içinde fiyat açısından ${priceRank}. sırada ve emsallerin %${cheaperThanPercentage}'inden daha ucuz. Genel olarak ${positionLabels[marketPosition]}.`;
+}
+
+export function createCompetitivePositioningAnalysis(
+  listingPrice: number,
+  marketAnalysis: ComparableMarketAnalysis
+): CompetitivePositioningAnalysis {
+  const validPrices = marketAnalysis.comparableVehicles
+    .map((comparable) => comparable.price)
+    .filter(
+      (price) =>
+        Number.isFinite(price) &&
+        price > 0
+    )
+    .sort((first, second) => first - second);
+
+  if (
+    !Number.isFinite(listingPrice) ||
+    listingPrice <= 0 ||
+    validPrices.length === 0
+  ) {
+    return {
+      pricePercentile: 0,
+      cheaperThanPercentage: 0,
+      priceRank: 0,
+      totalComparableCount: 0,
+      priceAdvantageScore: 0,
+      marketPosition: "fair_price",
+      summary:
+        "Rekabet konumlandırması için yeterli fiyat verisi bulunamadı.",
+    };
+  }
+
+  const cheaperComparableCount = validPrices.filter(
+    (price) => price < listingPrice
+  ).length;
+
+  const moreExpensiveComparableCount = validPrices.filter(
+    (price) => price > listingPrice
+  ).length;
+
+  const pricePercentile = Math.round(
+    (cheaperComparableCount / validPrices.length) * 100
+  );
+
+  const cheaperThanPercentage = Math.round(
+    (moreExpensiveComparableCount / validPrices.length) *
+      100
+  );
+
+  const priceRank = cheaperComparableCount + 1;
+
+  const medianPrice =
+    marketAnalysis.medianPrice > 0
+      ? marketAnalysis.medianPrice
+      : calculateMedian(validPrices);
+
+  const medianAdvantagePercentage =
+    medianPrice > 0
+      ? ((medianPrice - listingPrice) / medianPrice) * 100
+      : 0;
+
+  const rankScore = cheaperThanPercentage;
+
+  const medianScore = Math.max(
+    0,
+    Math.min(
+      100,
+      50 + medianAdvantagePercentage * 3
+    )
+  );
+
+  const confidenceWeight =
+    Math.max(
+      0,
+      Math.min(100, marketAnalysis.confidence)
+    ) / 100;
+
+  const rawAdvantageScore =
+    rankScore * 0.6 +
+    medianScore * 0.4;
+
+  const priceAdvantageScore = Math.round(
+    rawAdvantageScore * confidenceWeight +
+      50 * (1 - confidenceWeight)
+  );
+
+  const marketPosition = determineMarketPosition(
+    priceAdvantageScore
+  );
+
+  return {
+    pricePercentile,
+    cheaperThanPercentage,
+    priceRank,
+    totalComparableCount: validPrices.length,
+    priceAdvantageScore,
+    marketPosition,
+    summary: createPositioningSummary(
+      priceRank,
+      validPrices.length,
+      cheaperThanPercentage,
+      marketPosition
+    ),
+  };
+}
+

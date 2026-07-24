@@ -108,6 +108,33 @@ export type PurchaseRiskAnalysis = {
   summary: string;
 };
 
+export type MarketPosition =
+  | "excellent_deal"
+  | "strong_deal"
+  | "fair_price"
+  | "slightly_expensive"
+  | "overpriced";
+
+export type CompetitivePositioningAnalysis = {
+  pricePercentile: number;
+  cheaperThanPercentage: number;
+  priceRank: number;
+  totalComparableCount: number;
+  priceAdvantageScore: number;
+  marketPosition: MarketPosition;
+  summary: string;
+};
+
+export type NegotiationAnalysis = {
+  suggestedOfferPrice: number;
+  targetPurchasePrice: number;
+  maximumPurchasePrice: number;
+  negotiationMargin: number;
+  negotiationPower: number;
+  strategy: string;
+  arguments: string[];
+};
+
 export type AnalysisResult = {
   vehicle: Vehicle;
 
@@ -132,6 +159,10 @@ export type AnalysisResult = {
   lifetimeAnalysis: LifetimeAnalysis;
 
   purchaseRiskAnalysis: PurchaseRiskAnalysis;
+
+  competitivePositioning: CompetitivePositioningAnalysis;
+
+  negotiationAnalysis: NegotiationAnalysis;
 
   descriptionAnalysis: DescriptionAnalysis;
 
