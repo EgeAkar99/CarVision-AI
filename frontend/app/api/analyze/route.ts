@@ -56,12 +56,17 @@ function validateManualVehicle(
   const transmission = vehicle.transmission?.trim();
   const city = vehicle.city?.trim();
   const description = vehicle.description?.trim();
+  const currentYear = new Date().getFullYear();
 
   if (!brand || !model) {
     throw new Error("Marka ve model zorunludur.");
   }
 
-  if (!Number.isInteger(vehicle.year) || vehicle.year < 1900) {
+  if (
+    !Number.isInteger(vehicle.year) ||
+    vehicle.year < 1950 ||
+    vehicle.year > currentYear + 1
+  ) {
     throw new Error("Geçerli bir model yılı giriniz.");
   }
 
@@ -108,6 +113,7 @@ function validateBrowserExtensionVehicle(
   const year = parseNumber(vehicle.year);
   const mileage = parseNumber(vehicle.mileage);
   const price = parseNumber(vehicle.price);
+  const currentYear = new Date().getFullYear();
 
   const fullModel = [series, model]
     .filter((value): value is string => Boolean(value))
@@ -126,7 +132,11 @@ function validateBrowserExtensionVehicle(
     );
   }
 
-  if (!Number.isInteger(year) || year < 1900) {
+  if (
+    !Number.isInteger(year) ||
+    year < 1950 ||
+    year > currentYear + 1
+  ) {
     throw new Error(
       "Tarayıcı eklentisi geçerli model yılı bilgisi okuyamadı."
     );
@@ -173,7 +183,7 @@ function validateBrowserExtensionVehicle(
           )
           .map((image) => image.trim())
       ),
-    ];
+    ].slice(0, 30);
 
     return images.length ? images : undefined;
   }
@@ -193,7 +203,7 @@ function validateBrowserExtensionVehicle(
     typeof vehicle.photoCount === "number" &&
     Number.isFinite(vehicle.photoCount) &&
     vehicle.photoCount >= 0
-      ? Math.floor(vehicle.photoCount)
+      ? Math.min(30, Math.floor(vehicle.photoCount))
       : images?.length ?? 0;
 
   return {
@@ -205,7 +215,7 @@ function validateBrowserExtensionVehicle(
     transmission,
     price,
     city: city || "Bilinmiyor",
-    description: description || undefined,
+    description: description?.slice(0, 5_000) || undefined,
 
     title: cleanOptionalString(vehicle.title),
     listingNumber: cleanOptionalString(vehicle.listingNumber),
@@ -237,7 +247,6 @@ function validateBrowserExtensionVehicle(
     listingUrl: cleanOptionalString(vehicle.url),
   };
 }
-
 
 function validateBrowserExtensionComparables(
   comparables: BrowserExtensionComparableInput[] | undefined,
@@ -287,7 +296,7 @@ function validateBrowserExtensionComparables(
     .filter(
       (comparable) =>
         comparable.title.length > 0 &&
-        comparable.year >= 1900 &&
+        comparable.year >= 1950 &&
         comparable.mileage >= 0 &&
         comparable.price > 0 &&
         (!vehicle.listingUrl ||
@@ -331,12 +340,6 @@ export async function POST(request: Request) {
       comparables = validateBrowserExtensionComparables(
         body.comparables,
         vehicle
-      );
-
-      console.log(
-        "[Comparables]",
-        comparables.length,
-        comparables.slice(0, 5)
       );
     } else {
       return Response.json(

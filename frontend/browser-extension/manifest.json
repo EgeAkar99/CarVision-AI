@@ -11,7 +11,9 @@
   "host_permissions": [
     "https://www.sahibinden.com/*",
     "https://*.sahibinden.com/*",
-    "http://localhost:3000/*"
+    "http://localhost:3000/*",
+    "https://carvisionai.com/*",
+    "https://www.carvisionai.com/*"
   ],
   "action": {
     "default_popup": "popup.html",

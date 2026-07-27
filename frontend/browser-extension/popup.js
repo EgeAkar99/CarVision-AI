@@ -1,6 +1,8 @@
 const button = document.getElementById("send");
 const status = document.getElementById("status");
 
+const APP_URL = "http://localhost:3000";
+
 function isSahibindenUrl(url) {
   return (
     url.startsWith("https://www.sahibinden.com/") ||
@@ -28,11 +30,7 @@ async function findComparables(vehicle) {
       vehicle,
     });
 
-    if (!response?.success) {
-      return [];
-    }
-
-    return Array.isArray(response.comparables)
+    return response?.success && Array.isArray(response.comparables)
       ? response.comparables
       : [];
   } catch {
@@ -61,25 +59,24 @@ button.addEventListener("click", async () => {
     }
 
     const pageData = await getPageData(activeTab.id);
-
     const vehicle = pageData?.vehicle;
+
+    if (!vehicle?.brand || !vehicle?.model || !vehicle?.price) {
+      throw new Error(
+        "Araç bilgileri eksik okundu. Sayfayı yenileyip tekrar deneyin."
+      );
+    }
 
     let comparables = Array.isArray(pageData?.comparables)
       ? pageData.comparables
       : [];
 
-    if (!vehicle?.brand || !vehicle?.model || !vehicle?.price) {
-      throw new Error(
-        "Araç bilgileri eksik okundu. İlan sayfasını yenileyip tekrar deneyin."
-      );
-    }
-
-    if (comparables.length === 0) {
+    if (!comparables.length) {
       status.textContent = "Gerçek emsal ilanlar aranıyor...";
       comparables = await findComparables(vehicle);
     }
 
-    status.textContent = `${comparables.length} emsal bulundu. CarVision AI açılıyor...`;
+    status.textContent = "Veriler CarVision AI'a gönderiliyor...";
 
     const transferVehicle = {
       ...vehicle,
@@ -107,46 +104,37 @@ button.addEventListener("click", async () => {
           : undefined,
     };
 
-    const transferPayload = {
-      vehicle: transferVehicle,
-      comparables,
-    };
-
-    status.textContent = "Veriler CarVision AI'a gönderiliyor...";
-
-    const transferResponse = await fetch(
-      "http://localhost:3000/api/extension-transfer",
+    const response = await fetch(
+      `${APP_URL}/api/extension-transfer`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(transferPayload),
+        body: JSON.stringify({
+          vehicle: transferVehicle,
+          comparables,
+        }),
       }
     );
 
-    const transferResult = await transferResponse.json();
+    const result = await response.json();
 
-    if (
-      !transferResponse.ok ||
-      !transferResult?.success ||
-      !transferResult?.token
-    ) {
+    if (!response.ok || !result?.success || !result?.token) {
       throw new Error(
-        transferResult?.message ||
-          "Eklenti verileri CarVision AI'a gönderilemedi."
+        result?.message ||
+          "Veriler CarVision AI'a gönderilemedi."
       );
     }
 
     await chrome.tabs.create({
-      url: `http://localhost:3000/?extensionToken=${encodeURIComponent(
-        transferResult.token
+      url: `${APP_URL}/?extensionToken=${encodeURIComponent(
+        result.token
       )}`,
       active: true,
     });
 
-    status.textContent =
-      `Araç bilgileri ve ${comparables.length} emsal CarVision AI'a aktarıldı.`;
+    status.textContent = `Araç ve ${comparables.length} emsal aktarıldı.`;
   } catch (error) {
     status.textContent =
       error instanceof Error

@@ -510,68 +510,211 @@ function createAiComment(
   competitivePositioning: AnalysisResult["competitivePositioning"],
   negotiationAnalysis: AnalysisResult["negotiationAnalysis"]
 ): string {
-  const brand = getString(vehicle, ["brand", "make", "marka"], "Araç");
-  const model = getString(vehicle, ["model"]);
-  const year = getNumber(vehicle, ["year", "modelYear", "yil"]);
-  const mileage = getNumber(vehicle, ["mileage", "kilometers", "kilometre", "km"]);
-  const price = getNumber(vehicle, ["price", "listingPrice", "fiyat"]);
-  const vehicleName = [brand, model, year].filter(Boolean).join(" ");
+  const brand = getString(
+    vehicle,
+    ["brand", "make", "marka"],
+    "Araç"
+  );
+  const series = getString(
+    vehicle,
+    ["series", "seri"]
+  );
+  const model = getString(
+    vehicle,
+    ["model"]
+  );
+  const year = getNumber(
+    vehicle,
+    ["year", "modelYear", "yil"]
+  );
+  const mileage = getNumber(
+    vehicle,
+    ["mileage", "kilometers", "kilometre", "km"]
+  );
+  const price = getNumber(
+    vehicle,
+    ["price", "listingPrice", "fiyat"]
+  );
+  const fuelType = normalizeText(
+    getString(vehicle, ["fuelType", "fuel", "yakit"])
+  );
+  const transmission = normalizeText(
+    getString(vehicle, ["transmission", "gear", "vites"])
+  );
+  const damageRecord = getNumber(
+    vehicle,
+    ["damageRecord", "tramer", "damageAmount", "hasarKaydi"]
+  );
+  const paintedParts = getArray(
+    vehicle,
+    ["paintedParts", "painted", "boyaliParcalar"]
+  );
+  const changedParts = getArray(
+    vehicle,
+    ["changedParts", "changed", "degisenParcalar"]
+  );
+
+  const vehicleName = [
+    brand,
+    series,
+    model,
+    year > 0 ? year : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const vehicleAge =
+    year > 0
+      ? Math.max(CURRENT_YEAR - year, 0)
+      : 0;
+
+  const expectedMileage =
+    vehicleAge > 0
+      ? Math.max(vehicleAge * 15_000, 30_000)
+      : 0;
+
+  const mileageDifference =
+    expectedMileage > 0
+      ? mileage - expectedMileage
+      : 0;
+
+  const variationSeed =
+    createVehicleSeed(vehicle) % 4;
 
   const marketReference =
     marketAnalysis.comparableCount >= 3
-      ? `${marketAnalysis.comparableCount} emsal ilanın medyanı ${marketAnalysis.medianPrice.toLocaleString("tr-TR")} TL, ortalaması ${marketAnalysis.averagePrice.toLocaleString("tr-TR")} TL ve analiz güveni %${marketAnalysis.confidence}.`
-      : "Yeterli sayıda gerçek emsal bulunamadığı için piyasa değeri araç özelliklerinden tahmin edildi.";
+      ? `${marketAnalysis.comparableCount} emsal ilan üzerinden hesaplanan medyan fiyat ${marketAnalysis.medianPrice.toLocaleString("tr-TR")} TL, ortalama fiyat ${marketAnalysis.averagePrice.toLocaleString("tr-TR")} TL ve piyasa analizi güveni %${marketAnalysis.confidence}.`
+      : "Yeterli sayıda güvenilir emsal bulunamadığı için piyasa değeri model yılı, kilometre, yakıt, şanzıman ve ilan fiyatı üzerinden tahmin edildi.";
 
   let priceComment: string;
 
   if (differencePercentage <= -10) {
     priceComment =
-      "Fiyat emsal piyasanın belirgin altında. Bu durum alım fırsatı olabileceği gibi gizli hasar, acil satış veya eksik ilan bilgisi ihtimalini de artırır.";
+      variationSeed === 0
+        ? "İlan fiyatı piyasanın belirgin altında. Bu seviye gerçek bir fırsat olabilir ancak fiyat farkının hasar, bakım ihtiyacı veya acil satış gibi bir nedeni olup olmadığı mutlaka araştırılmalı."
+        : "Araç emsallerine göre dikkat çekici derecede ucuz. Ekspertiz, tramer ve servis geçmişi temiz çıkarsa güçlü bir fiyat avantajı sunabilir.";
   } else if (differencePercentage <= -4) {
     priceComment =
-      "Fiyat emsal piyasanın altında ve ekspertiz sonucu temiz çıkarsa avantajlı bir alım olabilir.";
+      "İlan fiyatı tahmini piyasa değerinin altında. Araç kondisyonu ve geçmişi doğrulandığında avantajlı bir alım olma ihtimali yüksek.";
   } else if (differencePercentage < 5) {
     priceComment =
-      "Fiyat emsal piyasa aralığıyla uyumlu. Kararı aracın kondisyonu ve bakım geçmişi belirlemeli.";
+      "İlan fiyatı piyasa aralığıyla uyumlu. Bu araçta asıl karar kriteri fiyat değil; bakım geçmişi, mekanik kondisyon ve ekspertiz sonucu olmalı.";
   } else if (differencePercentage < 12) {
     priceComment =
-      "Fiyat emsal piyasanın üzerinde. Donanım, hasarsızlık veya düşük kilometre gibi somut bir gerekçe yoksa pazarlık yapılmalı.";
+      "İlan fiyatı piyasa seviyesinin üzerinde. Düşük kilometre, üst donanım, servis geçmişi veya hasarsızlık gibi somut bir üstünlük yoksa pazarlık yapılmalı.";
   } else {
     priceComment =
-      "Fiyat emsal piyasanın belirgin üzerinde. Güçlü bir fiyat indirimi olmadan alternatif ilanlar daha mantıklı görünüyor.";
+      "İlan fiyatı emsal piyasanın belirgin üzerinde. Satıcı güçlü bir indirim yapmadığı sürece benzer özellikteki alternatif ilanlar daha mantıklı görünüyor.";
   }
 
-  const scoreComment =
-    score >= 85
-      ? "Genel puan aracı güçlü bir aday olarak gösteriyor."
-      : score >= 70
-        ? "Genel puan aracı değerlendirilebilir seviyede gösteriyor."
-        : score >= 55
-          ? "Genel puan önemli kontroller yapılmadan karar verilmemesi gerektiğini gösteriyor."
-          : "Genel puan risk seviyesinin yüksek olduğunu ve alternatiflerin incelenmesi gerektiğini gösteriyor.";
+  let mileageComment: string;
 
-  const mileageComment =
-    mileage >= 220_000
-      ? "Kilometre yüksek olduğu için motor, turbo, enjektör, şanzıman ve ağır bakım kayıtları kritik."
-      : mileage >= 140_000
-        ? "Kilometre seviyesi nedeniyle periyodik bakım ve parça değişim kayıtları doğrulanmalı."
-        : "Kilometre seviyesi yaşına göre makul görünse de kayıtlarla doğrulanmalı.";
+  if (mileage <= 0) {
+    mileageComment =
+      "Kilometre bilgisi güvenilir şekilde alınamadı. Karar öncesinde TÜVTÜRK, servis ve muayene kayıtları üzerinden doğrulama yapılmalı.";
+  } else if (mileage >= 220_000) {
+    mileageComment =
+      `Araç ${mileage.toLocaleString("tr-TR")} km seviyesinde. Motor, turbo, enjektör, şanzıman, debriyaj ve ağır bakım geçmişi satın alma kararında kritik önem taşıyor.`;
+  } else if (
+    expectedMileage > 0 &&
+    mileageDifference > 50_000
+  ) {
+    mileageComment =
+      `Kilometre, model yılına göre beklenen seviyenin yaklaşık ${Math.round(mileageDifference / 1_000) * 1_000} km üzerinde. Düzenli bakım belgeleri yoksa ilerideki masraf riski artabilir.`;
+  } else if (
+    expectedMileage > 0 &&
+    mileageDifference < -40_000
+  ) {
+    mileageComment =
+      "Kilometre model yılına göre düşük görünüyor. Bu olumlu bir durum olsa da kilometrenin servis ve muayene kayıtlarıyla doğrulanması gerekir.";
+  } else {
+    mileageComment =
+      "Kilometre model yılına göre normal aralıkta görünüyor. Periyodik bakım ve önemli parça değişim kayıtları yine de kontrol edilmeli.";
+  }
+
+  const mechanicalDetails: string[] = [];
+
+  if (fuelType.includes("dizel")) {
+    mechanicalDetails.push(
+      "Dizel kullanım nedeniyle DPF, EGR, turbo ve enjektör sistemi kontrol edilmeli"
+    );
+  } else if (fuelType.includes("benzin")) {
+    mechanicalDetails.push(
+      "Benzinli motorda yağ tüketimi, ateşleme bobinleri ve bujiler incelenmeli"
+    );
+  } else if (fuelType.includes("hibrit")) {
+    mechanicalDetails.push(
+      "Hibrit batarya sağlığı ve elektrik destek sistemi test edilmeli"
+    );
+  } else if (fuelType.includes("elektrik")) {
+    mechanicalDetails.push(
+      "Batarya kapasitesi, şarj geçmişi ve yüksek voltaj sistemi kontrol edilmeli"
+    );
+  }
+
+  if (
+    transmission.includes("otomatik") ||
+    transmission.includes("automatic")
+  ) {
+    mechanicalDetails.push(
+      "otomatik şanzımanın geçişleri ve bakım geçmişi test edilmeli"
+    );
+  } else {
+    mechanicalDetails.push(
+      "debriyaj, baskı balata ve volan durumu kontrol edilmeli"
+    );
+  }
+
+  const historyDetails: string[] = [];
+
+  if (damageRecord > 0) {
+    historyDetails.push(
+      `${damageRecord.toLocaleString("tr-TR")} TL hasar kaydının içeriği belgelerle doğrulanmalı`
+    );
+  }
+
+  if (changedParts.length > 0) {
+    historyDetails.push(
+      `${changedParts.length} değişen parçanın şasi ve bağlantı noktalarına etkisi ekspertizde incelenmeli`
+    );
+  }
+
+  if (paintedParts.length > 0) {
+    historyDetails.push(
+      `${paintedParts.length} boyalı parçanın kozmetik mi yoksa kazaya bağlı mı olduğu belirlenmeli`
+    );
+  }
+
+  if (historyDetails.length === 0) {
+    historyDetails.push(
+      "ilan verilerinde belirgin bir kaporta veya hasar detayı bulunmasa da bu durum ekspertizle doğrulanmalı"
+    );
+  }
 
   const competitiveComment =
     competitivePositioning.totalComparableCount > 0
-      ? `Araç ${competitivePositioning.totalComparableCount} emsal içinde fiyat açısından ${competitivePositioning.priceRank}. sırada ve emsallerin %${competitivePositioning.cheaperThanPercentage}'inden daha ucuz. Fiyat avantaj skoru ${competitivePositioning.priceAdvantageScore}/100.`
-      : "Rekabet sıralaması için yeterli emsal verisi bulunamadı.";
+      ? `Araç ${competitivePositioning.totalComparableCount} emsal içinde fiyat sıralamasında ${competitivePositioning.priceRank}. sırada. Emsallerin %${competitivePositioning.cheaperThanPercentage}'inden daha ucuz ve fiyat avantaj skoru ${competitivePositioning.priceAdvantageScore}/100. ${competitivePositioning.summary}`
+      : "Sağlıklı bir rekabet sıralaması oluşturmak için yeterli emsal verisi bulunamadı.";
+
+  const scoreComment =
+    score >= 88
+      ? "Genel değerlendirme aracı güçlü bir satın alma adayı olarak gösteriyor."
+      : score >= 75
+        ? "Genel değerlendirme aracı olumlu ve değerlendirilebilir bir seçenek olarak gösteriyor."
+        : score >= 60
+          ? "Araç değerlendirilebilir ancak satın alma kararı ekspertiz ve bakım geçmişine bağlı."
+          : "Mevcut veriler risklerin fiyat avantajından daha ağır bastığını gösteriyor.";
 
   const negotiationComment =
-    `Önerilen ilk teklif ${negotiationAnalysis.suggestedOfferPrice.toLocaleString("tr-TR")} TL, hedef alım fiyatı ${negotiationAnalysis.targetPurchasePrice.toLocaleString("tr-TR")} TL ve aşılmaması önerilen maksimum fiyat ${negotiationAnalysis.maximumPurchasePrice.toLocaleString("tr-TR")} TL.`;
+    `Pazarlığa ${negotiationAnalysis.suggestedOfferPrice.toLocaleString("tr-TR")} TL civarında başlanabilir. Hedef alım fiyatı ${negotiationAnalysis.targetPurchasePrice.toLocaleString("tr-TR")} TL, aşılmaması önerilen üst sınır ise ${negotiationAnalysis.maximumPurchasePrice.toLocaleString("tr-TR")} TL. ${negotiationAnalysis.strategy}`;
 
   return [
     `Fiyat Analizi: ${vehicleName} için ${price.toLocaleString("tr-TR")} TL ilan fiyatı değerlendirildi. ${marketReference} ${priceComment}`,
     `Rekabet Konumu: ${competitiveComment}`,
-    `Mekanik Değerlendirme: ${mileageComment}`,
-    `Pazarlık Stratejisi: ${negotiationComment} ${negotiationAnalysis.strategy}`,
-    `Donanım Değerlendirmesi: İlanda tespit edilen donanımlar kullanım konforu ve ikinci el değerini etkileyebilir; tüm fonksiyonlar fiziksel olarak test edilmelidir.`,
-    `Genel Sonuç: ${scoreComment} Nihai karar bağımsız ekspertiz, tramer ve servis geçmişi kontrolünden sonra verilmelidir.`,
+    `Kilometre ve Mekanik: ${mileageComment} ${mechanicalDetails.join("; ")}.`,
+    `Hasar ve Geçmiş: ${historyDetails.join("; ")}.`,
+    `Pazarlık Stratejisi: ${negotiationComment}`,
+    `Genel Sonuç: ${scoreComment} Nihai karar bağımsız ekspertiz, tramer sorgusu, servis kayıtları ve test sürüşü tamamlandıktan sonra verilmelidir.`,
   ].join(" | ");
 }
 

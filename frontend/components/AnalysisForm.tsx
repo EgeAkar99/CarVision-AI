@@ -197,26 +197,19 @@ export default function AnalysisForm() {
     }
 
     if (mode === "listing") {
-      if (browserVehicle) {
-        requestBody = {
-          source: "browser-extension",
-          vehicle: browserVehicle,
-          comparables: browserComparables,
-        };
-      } else {
-        const trimmedListingUrl = listingUrl.trim();
-
-        if (!trimmedListingUrl) {
-          setMessage("Lütfen bir ilan linki gir.");
-          setErrorCode("VALIDATION_ERROR");
-          return;
-        }
-
-        requestBody = {
-          source: "listing",
-          listingUrl: trimmedListingUrl,
-        };
+      if (!browserVehicle) {
+        setMessage(
+          "İlanı analiz etmek için Sahibinden sayfasında CarVision AI uzantısından Aktar butonunu kullan."
+        );
+        setErrorCode("EXTENSION_REQUIRED");
+        return;
       }
+
+      requestBody = {
+        source: "browser-extension",
+        vehicle: browserVehicle,
+        comparables: browserComparables,
+      };
     } else {
       requestBody = {
         source: "manual",
@@ -289,7 +282,7 @@ export default function AnalysisForm() {
               : "text-slate-300 hover:text-white"
           }`}
         >
-          İlan Linki
+          Uzantı ile Aktar
         </button>
 
         <button
@@ -307,27 +300,74 @@ export default function AnalysisForm() {
 
       <form onSubmit={handleSubmit}>
         {mode === "listing" ? (
-          <div className="flex w-full flex-col gap-3 sm:flex-row sm:gap-4">
-            <input
-              type="url"
-              value={listingUrl}
-              onChange={(event) => {
-                setListingUrl(event.target.value);
-                setBrowserVehicle(null);
-                setBrowserComparables([]);
-              }}
-              placeholder="Sahibinden ilan linkini yapıştır..."
-              disabled={isLoading}
-              className="glass-card min-w-0 flex-1 rounded-2xl px-4 py-4 text-sm text-white placeholder:text-slate-400 outline-none transition focus:border-emerald-400/60 disabled:cursor-not-allowed disabled:opacity-50 sm:px-5 sm:text-base"
-            />
+          <div className="glass-card rounded-3xl p-5 sm:p-6">
+            {browserVehicle ? (
+              <>
+                <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-4">
+                  <p className="text-sm font-semibold text-emerald-300">
+                    İlan uzantıdan başarıyla aktarıldı
+                  </p>
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="primary-glow w-full rounded-2xl bg-gradient-to-r from-emerald-400 to-emerald-500 px-6 py-4 font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:from-emerald-300 hover:to-emerald-400 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:px-8"
-            >
-              {isLoading ? "Analiz Ediliyor..." : "Analiz Et"}
-            </button>
+                  <p className="mt-2 text-sm leading-6 text-slate-300">
+                    {browserVehicle.title ||
+                      `${browserVehicle.brand} ${browserVehicle.model}`}
+                  </p>
+
+                  <p className="mt-1 text-xs text-slate-400">
+                    {browserComparables.length} gerçek emsal alındı.
+                  </p>
+
+                  {listingUrl && (
+                    <p className="mt-3 truncate text-xs text-slate-500">
+                      {listingUrl}
+                    </p>
+                  )}
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="primary-glow mt-4 w-full rounded-2xl bg-gradient-to-r from-emerald-400 to-emerald-500 px-6 py-4 font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:from-emerald-300 hover:to-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isLoading ? "Analiz Ediliyor..." : "Aktarılan İlanı Analiz Et"}
+                </button>
+              </>
+            ) : (
+              <div className="rounded-2xl border border-slate-500/30 bg-slate-950/35 p-5 text-left">
+                <p className="font-semibold text-white">
+                  İlan linkini buraya yapıştırmana gerek yok
+                </p>
+
+                <p className="mt-2 text-sm leading-6 text-slate-300">
+                  Sahibinden ilanını aç, CarVision AI uzantısına tıkla ve
+                  <span className="font-semibold text-emerald-300">
+                    {" "}Aktar
+                  </span>
+                  {" "}butonunu kullan. Araç bilgileri ve gerçek emsaller
+                  otomatik olarak bu ekrana gelecektir.
+                </p>
+
+                <div className="mt-4 grid gap-2 text-sm text-slate-400 sm:grid-cols-3">
+                  <div className="rounded-xl border border-white/5 bg-white/[0.03] p-3">
+                    1. İlanı aç
+                  </div>
+                  <div className="rounded-xl border border-white/5 bg-white/[0.03] p-3">
+                    2. Uzantıya tıkla
+                  </div>
+                  <div className="rounded-xl border border-white/5 bg-white/[0.03] p-3">
+                    3. Aktar butonuna bas
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => changeMode("manual")}
+                  className="mt-5 text-sm font-semibold text-emerald-300 transition hover:text-emerald-200"
+                >
+                  Uzantı kullanmadan manuel giriş yap
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="glass-card rounded-3xl p-6">
@@ -461,40 +501,19 @@ export default function AnalysisForm() {
         </div>
       )}
 
-      {message && !isLoading && errorCode === "ACCESS_BLOCKED" && (
-        <div className="mt-6 rounded-xl border border-amber-500/30 bg-amber-500/10 p-5">
-          <p className="font-semibold text-amber-400">
-            İlan bilgilerine doğrudan erişilemedi
-          </p>
-
-          <p className="mt-2 text-sm leading-6 text-slate-200">
-            Sahibinden, sunucu üzerinden yapılan otomatik isteği engelledi.
-            Araç bilgilerini manuel girerek analize devam edebilirsin.
-          </p>
-
-          <button
-            type="button"
-            onClick={() => changeMode("manual")}
-            className="mt-4 rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-black transition hover:bg-amber-300"
-          >
-            Manuel Girişe Geç
-          </button>
-        </div>
-      )}
-
-      {message &&
-        !isLoading &&
-        errorCode !== "ACCESS_BLOCKED" && (
+      {message && !isLoading && (
           <div
             className={`mt-4 rounded-2xl border px-4 py-3 text-center text-sm ${
-              errorCode
-                ? "border-rose-400/20 bg-rose-400/10 text-rose-200"
-                : "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
+              errorCode === "EXTENSION_REQUIRED"
+                ? "border-amber-400/20 bg-amber-400/10 text-amber-200"
+                : errorCode
+                  ? "border-rose-400/20 bg-rose-400/10 text-rose-200"
+                  : "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
             }`}
           >
             {message}
           </div>
-        )}
+      )}
 
       {result && (
         <div id="analysis-result" className="scroll-mt-6">
