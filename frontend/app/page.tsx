@@ -1,34 +1,21 @@
-export default function PrivacyPage() {
+import Navbar from "../components/Navbar";
+import Hero from "../components/Hero";
+
+export default function Home() {
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-200">
-      <div className="mx-auto max-w-4xl px-6 py-16">
-        <h1 className="text-4xl font-bold text-white">
-          Gizlilik Politikası
-        </h1>
+    <main className="min-h-screen bg-slate-950/45 text-white">
+      <Navbar />
+      <Hero />
 
-        <p className="mt-8 leading-8">
-          CarVision AI, kullanıcıların yalnızca analiz etmek
-          istedikleri araç ilanı bilgilerini işler.
-        </p>
+      <footer className="border-t border-white/5 bg-slate-900/45">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+          <p>© 2026 CarVision AI. Tüm hakları saklıdır.</p>
 
-        <p className="mt-6 leading-8">
-          Uzantı yalnızca kullanıcı tarafından başlatılan aktarım
-          işlemi sırasında çalışır. Arka planda veri toplamaz,
-          kullanıcı davranışlarını izlemez ve kişisel verileri
-          üçüncü taraflarla paylaşmaz.
-        </p>
-
-        <p className="mt-6 leading-8">
-          Aktarılan veriler yalnızca analiz oluşturmak amacıyla
-          kullanılır.
-        </p>
-
-        <p className="mt-6 leading-8">
-          İletişim:
-          <br />
-          e-posta: contact@carvision.ai
-        </p>
-      </div>
+          <p>
+            Daha bilinçli araç kararları için geliştirildi.
+          </p>
+        </div>
+      </footer>
     </main>
   );
 }
