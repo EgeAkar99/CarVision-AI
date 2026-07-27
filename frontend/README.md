@@ -1,36 +1,128 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚗 CarVision AI
 
-## Getting Started
+CarVision AI is an AI-powered vehicle analysis platform that helps users make smarter second-hand car purchasing decisions.
 
-First, run the development server:
+The platform analyzes vehicle listings, compares them with similar vehicles on the market, evaluates pricing, detects potential risks, and generates an intelligent purchase report within seconds.
+
+---
+
+## ✨ Features
+
+- 🤖 AI-powered vehicle analysis
+- 📊 Market price evaluation
+- 🚘 Comparable vehicle analysis
+- 📈 Competitive positioning analysis
+- ⚠️ Purchase risk analysis
+- 💰 Ownership cost estimation
+- ⏳ Vehicle lifetime estimation
+- 🛠 Equipment analysis
+- 📝 Listing description analysis
+- 📸 Vehicle photo analysis
+- 🤝 Negotiation recommendation
+- 🌐 Browser extension integration
+- ⚡ Real-time analysis
+
+---
+
+## 🖥 Browser Extension
+
+CarVision AI includes a browser extension that works with Sahibinden listings.
+
+With a single click it can:
+
+- Read vehicle information
+- Collect comparable listings
+- Transfer data directly to CarVision AI
+- Automatically start the analysis
+
+---
+
+## 🛠 Tech Stack
+
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS
+- Playwright
+- Vercel
+
+---
+
+## 🚀 Getting Started
+
+Clone the repository
+
+```bash
+git clone https://github.com/EgeAkar99/CarVision-AI.git
+```
+
+Install dependencies
+
+```bash
+npm install
+```
+
+Run the development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Build production
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 🌍 Live Demo
 
-To learn more about Next.js, take a look at the following resources:
+https://carvision-ai-delta.vercel.app
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📁 Project Structure
 
-## Deploy on Vercel
+```
+app/
+components/
+browser-extension/
+providers/
+services/
+types/
+public/
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🎯 Roadmap
+
+- [x] AI vehicle analysis
+- [x] Browser extension
+- [x] Market comparison
+- [x] Competitive positioning
+- [x] Purchase risk analysis
+- [x] Ownership cost analysis
+- [x] Vehicle lifetime analysis
+- [x] Privacy policy
+- [ ] Chrome Web Store release
+- [ ] Safari Extension
+- [ ] Mobile application
+- [ ] Multi-language support
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+## 👨‍💻 Developer
+
+**Ege Akar**
+
+GitHub
+
+https://github.com/EgeAkar99
