@@ -1,7 +1,7 @@
 const button = document.getElementById("send");
 const status = document.getElementById("status");
 
-const APP_URL = "http://localhost:3000";
+const APP_URL = "https://carvision-ai-delta.vercel.app";
 
 function isSahibindenUrl(url) {
   return (

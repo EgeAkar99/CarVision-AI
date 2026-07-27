@@ -9,7 +9,6 @@ import {
 } from "./comparables";
 import { getVehicleSpecificRisks } from "./vehicleRiskEngine";
 import { analyzeEquipment } from "./equipment";
-import { createComparableProvider } from "../providers/comparableProviderFactory";
 
 type VehicleData = Vehicle & Record<string, unknown>;
 
@@ -17,12 +16,6 @@ type PriceEvaluation = AnalysisResult["priceAnalysis"]["evaluation"];
 type PurchaseRecommendation = AnalysisResult["purchaseRecommendation"];
 
 const CURRENT_YEAR = new Date().getFullYear();
-const comparableProvider = createComparableProvider(
-  process.env.COMPARABLE_PROVIDER === "sahibinden"
-    ? "sahibinden"
-    : "fake"
-);
-
 function getString(
   vehicle: VehicleData,
   keys: string[],
@@ -725,7 +718,7 @@ function createNegotiationAdvice(
 ): string {
   const marketDifference = Math.max(0, listingPrice - estimatedMarketPrice);
 
-  let baseRate = score >= 80 ? 0.025 : score >= 65 ? 0.04 : 0.06;
+  const baseRate = score >= 80 ? 0.025 : score >= 65 ? 0.04 : 0.06;
   const marketRate = marketDifference / Math.max(listingPrice, 1);
 
   const minimumRate = Math.min(0.15, baseRate + marketRate * 0.6);
@@ -1476,10 +1469,7 @@ export async function analyzeVehicle(
   const calculatedMarketPrice =
     estimateMarketPrice(vehicleData);
 
-  const sourceComparables =
-    providedComparables.length > 0
-      ? providedComparables
-      : await comparableProvider.findComparables(vehicle);
+  const sourceComparables = providedComparables;
 
   const marketAnalysis =
     createComparableMarketAnalysis(

@@ -1,8 +1,6 @@
 export const runtime = "nodejs";
 
 import { analyzeVehicle } from "../../../services/ai";
-import { getVehicleFromListing } from "../../../services/vehicle";
-import { SahibindenClientError } from "../../../providers/sahibinden/client";
 import type {
   BrowserExtensionComparableInput,
   BrowserExtensionVehicleInput,
@@ -315,22 +313,18 @@ export async function POST(request: Request) {
     let comparables: ComparableVehicle[] = [];
 
     if (body.source === "listing") {
-      listingUrl = body.listingUrl?.trim();
-
-      if (!listingUrl) {
-        return Response.json(
-          {
-            success: false,
-            message: "İlan linki zorunludur.",
-          },
-          {
-            status: 400,
-            headers: corsHeaders,
-          }
-        );
-      }
-
-      vehicle = await getVehicleFromListing(listingUrl);
+      return Response.json(
+        {
+          success: false,
+          code: "EXTENSION_REQUIRED",
+          message:
+            "İlan analizi için CarVision AI tarayıcı uzantısını kullanın.",
+        },
+        {
+          status: 400,
+          headers: corsHeaders,
+        }
+      );
     } else if (body.source === "manual") {
       vehicle = validateManualVehicle(body.vehicle);
       listingUrl = body.listingUrl?.trim() || undefined;
@@ -368,20 +362,6 @@ export async function POST(request: Request) {
       }
     );
   } catch (error) {
-    if (error instanceof SahibindenClientError) {
-      return Response.json(
-        {
-          success: false,
-          code: error.code,
-          message: error.message,
-        },
-        {
-          status: error.statusCode,
-          headers: corsHeaders,
-        }
-      );
-    }
-
     const message =
       error instanceof Error
         ? error.message
