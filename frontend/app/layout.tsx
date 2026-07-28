@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://carvision-ai.vercel.app"),
+  metadataBase: new URL("https://carvision-ai-delta.vercel.app"),
 
   title: {
     default: "CarVision AI | Yapay Zeka Destekli Araç Analizi",
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     title: "CarVision AI",
     description:
       "Yapay zeka destekli ikinci el araç analiz platformu.",
-    url: "https://carvision-ai.vercel.app",
+    url: "https://carvision-ai-delta.vercel.app",
     siteName: "CarVision AI",
     locale: "tr_TR",
     type: "website",
