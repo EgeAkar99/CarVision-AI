@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import type {
   AnalysisResult as AnalysisResultType,
   MarketPosition,
@@ -180,11 +182,14 @@ return (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[320px_1fr]">
           {vehicle.mainImage && (
             <div className="overflow-hidden rounded-xl border border-slate-600/30 bg-slate-950/45">
-              <img
-                src={vehicle.mainImage}
-                alt={`${vehicle.brand} ${vehicle.model}`}
-                className="h-64 w-full object-cover"
-              />
+              <Image
+                  src={vehicle.mainImage}
+                  alt={`${vehicle.brand} ${vehicle.model}`}
+                  width={640}
+                  height={256}
+                  className="h-64 w-full object-cover"
+                  priority
+                />
             </div>
           )}
 
@@ -1010,9 +1015,11 @@ return (
                     key={`${image}-${index}`}
                     className="overflow-hidden rounded-xl border border-slate-600/30 bg-slate-950/45"
                   >
-                    <img
+                    <Image
                       src={image}
                       alt={`Araç fotoğrafı ${index + 1}`}
+                      width={300}
+                     height={200}
                       className="h-32 w-full object-cover"
                     />
                   </div>

@@ -2,7 +2,7 @@ import type { VehicleProvider } from "../provider";
 import type { Vehicle } from "../../types/vehicle";
 
 export class FakeProvider implements VehicleProvider {
-  async getVehicle(_listingUrl: string): Promise<Vehicle> {
+  async getVehicle(): Promise<Vehicle> {
     return {
       brand: "BMW",
       model: "320i ED",
