@@ -536,11 +536,6 @@ const vehicle = {
 
 window.__CARVISION_DATA__ = vehicle;
 
-console.log(
-  "CarVision AI vehicle data:",
-  vehicle
-);
-
 chrome.runtime.onMessage.addListener(
   (message, _sender, sendResponse) => {
     if (

@@ -3,9 +3,7 @@ function parseNumber(value) {
     return 0;
   }
 
-  const normalized = value
-    .replace(/[^\d]/g, "")
-    .trim();
+  const normalized = value.replace(/[^\d]/g, "").trim();
 
   return Number(normalized) || 0;
 }
@@ -13,7 +11,6 @@ function parseNumber(value) {
 function getElementText(element, selectors) {
   for (const selector of selectors) {
     const target = element.querySelector(selector);
-
     const value = target?.textContent?.trim();
 
     if (value) {
@@ -73,6 +70,7 @@ function getComparableUrl(element) {
     return "";
   }
 }
+
 function extractComparableVehicles() {
   const rows = [
     ...document.querySelectorAll(
@@ -101,9 +99,9 @@ function extractComparableVehicles() {
         "[data-testid='location']",
       ]);
 
-      const cells = [
-        ...row.querySelectorAll("td"),
-      ].map((cell) => cell.textContent?.trim() || "");
+      const cells = [...row.querySelectorAll("td")].map(
+        (cell) => cell.textContent?.trim() || ""
+      );
 
       const currentYear = new Date().getFullYear();
 
@@ -125,15 +123,10 @@ function extractComparableVehicles() {
             }));
 
       const yearIndex = sourceCells.findIndex(
-        ({ value }) =>
-          value >= 1950 &&
-          value <= currentYear + 1
+        ({ value }) => value >= 1950 && value <= currentYear + 1
       );
 
-      const year =
-        yearIndex >= 0
-          ? sourceCells[yearIndex].value
-          : 0;
+      const year = yearIndex >= 0 ? sourceCells[yearIndex].value : 0;
 
       const cellsAfterYear =
         yearIndex >= 0
@@ -176,8 +169,3 @@ function extractComparableVehicles() {
 
 window.__CARVISION_COMPARABLES__ =
   extractComparableVehicles();
-
-console.log(
-  "CarVision AI comparable vehicles:",
-  window.__CARVISION_COMPARABLES__
-);
