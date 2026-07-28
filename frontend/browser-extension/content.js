@@ -340,78 +340,147 @@ function getImageContext(url) {
     .toLocaleLowerCase("tr-TR");
 }
 
-function isInteriorImage(url) {
+function getImageClassification(url) {
   const context =
     `${url} ${getImageContext(url)}`.toLocaleLowerCase(
       "tr-TR"
     );
 
-  const interiorKeywords =
-    /interior|iç\s*mek[aâ]n|iç\s*görünüm|kabin|kokpit|cockpit|dashboard|torpido|direksiyon|steering|koltuk|seat|vites|gear|konsol|console|pedal|multimedya|gösterge|gosterge|ön\s*panel|on\s*panel|arka\s*koltuk|kapı\s*içi|kapi\s*ici|tavan\s*döşeme|tavan\s*doseme|döşeme|doseme|iç\s*dizayn|ic\s*dizayn/i;
+  const interiorKeywords = [
+    /interior/,
+    /iç\s*mek[aâ]n/,
+    /iç\s*görünüm/,
+    /kabin/,
+    /kokpit/,
+    /cockpit/,
+    /dashboard/,
+    /torpido/,
+    /direksiyon/,
+    /steering/,
+    /koltuk/,
+    /seat/,
+    /vites/,
+    /gear/,
+    /konsol/,
+    /console/,
+    /pedal/,
+    /multimedya/,
+    /gösterge/,
+    /gosterge/,
+    /ön\s*panel/,
+    /on\s*panel/,
+    /arka\s*koltuk/,
+    /kapı\s*içi/,
+    /kapi\s*ici/,
+    /tavan\s*döşeme/,
+    /tavan\s*doseme/,
+    /döşeme/,
+    /doseme/,
+    /iç\s*dizayn/,
+    /ic\s*dizayn/,
+  ];
 
-  return interiorKeywords.test(context);
-}
+  const exteriorKeywords = [
+    /exterior/,
+    /outside/,
+    /dış\s*görünüm/,
+    /dis\s*gorunum/,
+    /ön\s*görünüm/,
+    /on\s*gorunum/,
+    /arka\s*görünüm/,
+    /arka\s*gorunum/,
+    /sağ\s*yan/,
+    /sag\s*yan/,
+    /sol\s*yan/,
+    /front/,
+    /rear/,
+    /side/,
+    /kaput/,
+    /tampon/,
+    /çamurluk/,
+    /camurluk/,
+    /jant/,
+    /lastik/,
+    /far/,
+    /stop/,
+    /ızgara/,
+    /izgara/,
+    /motor\s*bölümü/,
+    /motor\s*bolumu/,
+  ];
 
-function isExteriorImage(url) {
-  const context =
-    `${url} ${getImageContext(url)}`.toLocaleLowerCase(
-      "tr-TR"
-    );
+  const interiorScore = interiorKeywords.reduce(
+    (score, pattern) =>
+      score + (pattern.test(context) ? 1 : 0),
+    0
+  );
 
-  const exteriorKeywords =
-    /exterior|outside|dış\s*görünüm|dis\s*gorunum|ön\s*görünüm|on\s*gorunum|arka\s*görünüm|arka\s*gorunum|sağ\s*yan|sag\s*yan|sol\s*yan|front|rear|side|kaput|tampon|çamurluk|camurluk|jant|lastik|far|stop|ızgara|izgara|tavan|motor\s*bölümü|motor\s*bolumu/i;
+  const exteriorScore = exteriorKeywords.reduce(
+    (score, pattern) =>
+      score + (pattern.test(context) ? 1 : 0),
+    0
+  );
 
-  return exteriorKeywords.test(context);
+  if (
+    interiorScore === 0 &&
+    exteriorScore === 0
+  ) {
+    return "unknown";
+  }
+
+  if (interiorScore > exteriorScore) {
+    return "interior";
+  }
+
+  if (exteriorScore > interiorScore) {
+    return "exterior";
+  }
+
+  return "unknown";
 }
 
 function classifyImages(images) {
-  const explicitInterior = images.filter(
-    isInteriorImage
-  );
+  const interiorImages = [];
+  const exteriorImages = [];
+  const unknownImages = [];
 
-  const explicitExterior = images.filter(
-    (url) =>
-      !isInteriorImage(url) && isExteriorImage(url)
-  );
+  for (const image of images) {
+    const classification =
+      getImageClassification(image);
 
-  let interiorImages = [...explicitInterior];
+    if (classification === "interior") {
+      interiorImages.push(image);
+      continue;
+    }
 
-  if (
-    interiorImages.length === 0 &&
-    images.length >= 8
-  ) {
-    const fallbackStart = Math.max(
-      4,
-      Math.floor(images.length * 0.6)
-    );
+    if (classification === "exterior") {
+      exteriorImages.push(image);
+      continue;
+    }
 
-    interiorImages = images.slice(fallbackStart);
+    unknownImages.push(image);
   }
 
   const interiorKeys = new Set(
     interiorImages.map(normalizePhotoKey)
   );
 
-  let exteriorImages = images.filter(
-    (url) =>
-      !interiorKeys.has(normalizePhotoKey(url))
+  const exteriorKeys = new Set(
+    exteriorImages.map(normalizePhotoKey)
   );
 
-  if (explicitExterior.length > 0) {
-    const explicitExteriorKeys = new Set(
-      explicitExterior.map(normalizePhotoKey)
-    );
+  for (const image of unknownImages) {
+    const key = normalizePhotoKey(image);
 
-    const remainingUnclassified = images.filter(
-      (url) =>
-        !interiorKeys.has(normalizePhotoKey(url)) &&
-        !explicitExteriorKeys.has(normalizePhotoKey(url))
-    );
+    if (
+      interiorKeys.has(key) ||
+      exteriorKeys.has(key)
+    ) {
+      continue;
+    }
 
-    exteriorImages = [
-      ...explicitExterior,
-      ...remainingUnclassified,
-    ];
+    exteriorImages.push(image);
+    exteriorKeys.add(key);
   }
 
   return {
