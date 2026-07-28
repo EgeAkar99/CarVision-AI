@@ -13,21 +13,51 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CarVision AI | Yapay Zeka Destekli Araç Analizi",
+  metadataBase: new URL("https://carvision-ai.vercel.app"),
+
+  title: {
+    default: "CarVision AI | Yapay Zeka Destekli Araç Analizi",
+    template: "%s | CarVision AI",
+  },
+
   description:
     "CarVision AI, ikinci el araç ilanlarını yapay zeka ile analiz ederek fiyat değerlendirmesi, emsal karşılaştırması, satın alma riski ve detaylı araç raporu sunar.",
+
   keywords: [
     "CarVision AI",
     "araç analizi",
     "ikinci el araç",
-    "sahibinden analiz",
-    "yapay zeka",
-    "araç ekspertiz",
+    "sahibinden",
     "araç fiyat analizi",
+    "yapay zeka",
+    "ekspertiz",
   ],
+
   authors: [{ name: "Ege Akar" }],
   creator: "Ege Akar",
   applicationName: "CarVision AI",
+
+  openGraph: {
+    title: "CarVision AI",
+    description:
+      "Yapay zeka destekli ikinci el araç analiz platformu.",
+    url: "https://carvision-ai.vercel.app",
+    siteName: "CarVision AI",
+    locale: "tr_TR",
+    type: "website",
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "CarVision AI",
+    description:
+      "Yapay zeka destekli ikinci el araç analiz platformu.",
+  },
+
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
