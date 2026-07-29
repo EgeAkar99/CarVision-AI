@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import ServiceWorkerRegistration from "@/components/pwa/ServiceWorkerRegistration";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -38,6 +39,36 @@ export const metadata: Metadata = {
   authors: [{ name: "Ege Akar" }],
   creator: "Ege Akar",
   applicationName: "CarVision AI",
+  manifest: "/manifest.webmanifest",
+
+  appleWebApp: {
+    capable: true,
+    title: "CarVision AI",
+    statusBarStyle: "black-translucent",
+  },
+
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      {
+        url: "/android-chrome-192x192.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+      {
+        url: "/android-chrome-512x512.png",
+        sizes: "512x512",
+        type: "image/png",
+      },
+    ],
+    apple: [
+      {
+        url: "/apple-icon.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+    ],
+  },
 
   openGraph: {
     title: "CarVision AI",
@@ -72,6 +103,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         {children}
+        <ServiceWorkerRegistration />
         <Analytics />
         <SpeedInsights />
       </body>
