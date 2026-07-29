@@ -1,6 +1,7 @@
 export const runtime = "nodejs";
 
 import { analyzeVehicle } from "../../../services/ai";
+import { createClient } from "../../../lib/supabase/server";
 import type {
   BrowserExtensionComparableInput,
   BrowserExtensionVehicleInput,
@@ -350,11 +351,47 @@ export async function POST(request: Request) {
 
     const result = await analyzeVehicle(vehicle, comparables);
 
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    let savedAnalysisId: string | null = null;
+
+    if (user) {
+      const { data: savedAnalysis, error: saveError } = await supabase
+        .from("vehicle_analyses")
+        .insert({
+          user_id: user.id,
+          source: body.source,
+          listing_url: listingUrl ?? vehicle.listingUrl ?? null,
+          vehicle_brand: vehicle.brand,
+          vehicle_model: vehicle.model,
+          vehicle_year: vehicle.year,
+          vehicle_mileage: vehicle.mileage,
+          vehicle_price: vehicle.price,
+          vehicle_city: vehicle.city,
+          score: result.score,
+          analysis_confidence: result.analysisConfidence,
+          purchase_recommendation: result.purchaseRecommendation,
+          result,
+        })
+        .select("id")
+        .single();
+
+      if (saveError) {
+        console.error("[Analysis History] Kayıt hatası:", saveError);
+      } else {
+        savedAnalysisId = savedAnalysis.id;
+      }
+    }
+
     return Response.json(
       {
         success: true,
         source: body.source,
         listingUrl,
+        savedAnalysisId,
         result,
       },
       {

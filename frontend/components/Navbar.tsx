@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
+import { logout } from "@/app/(auth)/actions";
 
 const navigationItems = [
   { label: "Ana Sayfa", href: "#home" },
@@ -8,14 +10,26 @@ const navigationItems = [
   { label: "Özellikler", href: "#features" },
 ];
 
-export default function Navbar() {
+type NavbarProps = {
+  user: {
+    email: string;
+    fullName?: string;
+  } | null;
+};
+
+export default function Navbar({ user }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
+
+  const displayName =
+    user?.fullName?.trim() ||
+    user?.email.split("@")[0] ||
+    "Hesabım";
 
   return (
     <nav className="sticky top-0 z-50 border-b border-white/10 bg-slate-900/55 shadow-lg shadow-slate-950/10 backdrop-blur-2xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
-        <a
-          href="#home"
+        <Link
+          href="/#home"
           className="flex items-center gap-3"
           onClick={() => setIsOpen(false)}
         >
@@ -31,9 +45,9 @@ export default function Navbar() {
               Akıllı araç analiz platformu
             </p>
           </div>
-        </a>
+        </Link>
 
-        <div className="hidden items-center gap-8 md:flex">
+        <div className="hidden items-center gap-6 md:flex">
           {navigationItems.map((item) => (
             <a
               key={item.href}
@@ -50,6 +64,50 @@ export default function Navbar() {
           >
             Araç Analiz Et
           </a>
+
+          {user ? (
+            <div className="flex items-center gap-3 border-l border-white/10 pl-5">
+              <Link
+                href="/analizlerim"
+                className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-2.5 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-400/20"
+              >
+                Analizlerim
+              </Link>
+              <div className="max-w-32">
+                <p className="truncate text-sm font-semibold text-white">
+                  {displayName}
+                </p>
+                <p className="truncate text-xs text-slate-400">
+                  {user.email}
+                </p>
+              </div>
+
+              <form action={logout}>
+                <button
+                  type="submit"
+                  className="rounded-xl border border-slate-600/40 bg-slate-800/50 px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:border-red-400/30 hover:bg-red-400/10 hover:text-red-200"
+                >
+                  Çıkış Yap
+                </button>
+              </form>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 border-l border-white/10 pl-5">
+              <Link
+                href="/login"
+                className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:bg-white/5 hover:text-white"
+              >
+                Giriş Yap
+              </Link>
+
+              <Link
+                href="/register"
+                className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-2.5 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-400/20"
+              >
+                Kayıt Ol
+              </Link>
+            </div>
+          )}
         </div>
 
         <button
@@ -66,7 +124,7 @@ export default function Navbar() {
       </div>
 
       {isOpen && (
-        <div className="border-t border-zinc-900 bg-slate-950/45 px-6 py-4 md:hidden">
+        <div className="border-t border-white/10 bg-slate-950/90 px-6 py-4 backdrop-blur-2xl md:hidden">
           <div className="flex flex-col gap-4">
             {navigationItems.map((item) => (
               <a
@@ -86,6 +144,52 @@ export default function Navbar() {
             >
               Araç Analiz Et
             </a>
+
+            <div className="border-t border-white/10 pt-4">
+              {user ? (
+                <div className="space-y-3">
+                  <div>
+                    <p className="font-semibold text-white">{displayName}</p>
+                    <p className="text-xs text-slate-400">{user.email}</p>
+                  </div>
+
+                  <Link
+                    href="/analizlerim"
+                    onClick={() => setIsOpen(false)}
+                    className="block w-full rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-center text-sm font-semibold text-emerald-300"
+                  >
+                    Analizlerim
+                  </Link>
+
+                  <form action={logout}>
+                    <button
+                      type="submit"
+                      className="w-full rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm font-semibold text-red-200"
+                    >
+                      Çıkış Yap
+                    </button>
+                  </form>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  <Link
+                    href="/login"
+                    onClick={() => setIsOpen(false)}
+                    className="rounded-xl border border-slate-600/40 px-4 py-3 text-center text-sm font-semibold text-slate-200"
+                  >
+                    Giriş Yap
+                  </Link>
+
+                  <Link
+                    href="/register"
+                    onClick={() => setIsOpen(false)}
+                    className="rounded-xl bg-emerald-500 px-4 py-3 text-center text-sm font-bold text-slate-950"
+                  >
+                    Kayıt Ol
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
