@@ -14,6 +14,34 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#020617",
     lang: "tr",
     categories: ["automotive", "utilities"],
+    shortcuts: [
+      {
+        name: "Araç Analizi",
+        short_name: "Analiz",
+        description: "Yeni bir araç ilanını analiz et.",
+        url: "/#analysis",
+        icons: [
+          {
+            src: "/android-chrome-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
+          },
+        ],
+      },
+      {
+        name: "Gizlilik Politikası",
+        short_name: "Gizlilik",
+        description: "CarVision AI gizlilik politikasını görüntüle.",
+        url: "/privacy",
+        icons: [
+          {
+            src: "/android-chrome-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
+          },
+        ],
+      },
+    ],
     icons: [
       {
         src: "/android-chrome-192x192.png",

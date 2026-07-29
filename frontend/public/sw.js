@@ -1,7 +1,9 @@
-const CACHE_NAME = "carvision-ai-v1";
+const CACHE_NAME = "carvision-ai-v2";
+const OFFLINE_URL = "/offline";
 
 const APP_SHELL = [
   "/",
+  "/offline",
   "/privacy",
   "/manifest.webmanifest",
   "/android-chrome-192x192.png",
@@ -28,25 +30,31 @@ self.addEventListener("activate", (event) => {
             .map((key) => caches.delete(key))
         )
       )
+      .then(() => self.clients.claim())
   );
-
-  self.clients.claim();
 });
 
 self.addEventListener("fetch", (event) => {
   const request = event.request;
 
-  if (request.method !== "GET") {
+  if (request.method !== "GET" || request.url.includes("/api/")) {
     return;
   }
 
-  if (request.url.includes("/api/")) {
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request).catch(() => caches.match(OFFLINE_URL))
+    );
     return;
   }
 
   event.respondWith(
-    fetch(request)
-      .then((response) => {
+    caches.match(request).then((cachedResponse) => {
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      return fetch(request).then((response) => {
         if (!response || response.status !== 200) {
           return response;
         }
@@ -58,11 +66,7 @@ self.addEventListener("fetch", (event) => {
         });
 
         return response;
-      })
-      .catch(() =>
-        caches.match(request).then((cachedResponse) => {
-          return cachedResponse || caches.match("/");
-        })
-      )
+      });
+    })
   );
 });
