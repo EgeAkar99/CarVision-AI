@@ -77,9 +77,13 @@ export default async function AnalizlerimPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    redirect("/login?error=Analiz geçmişinizi görmek için giriş yapın.");
-  }
+   if (!user) {
+  const params = new URLSearchParams({
+    error: "Analiz geçmişinizi görmek için giriş yapın.",
+  });
+
+  redirect(`/login?${params.toString()}`);
+}
 
   const { data, error } = await supabase
     .from("vehicle_analyses")
