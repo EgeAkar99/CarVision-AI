@@ -532,7 +532,8 @@ const vehicle = {
 
   fuel:
     getAttribute("Yakıt") ||
-    getAttribute("Yakıt Tipi"),
+    getAttribute("Yakıt Tipi") ||
+    getAttribute("Yakıt / Motor Tipi"),
 
   transmission:
     getAttribute("Vites") ||
