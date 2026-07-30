@@ -127,6 +127,32 @@ export async function fetchSahibindenListing(
       })
       .catch(() => undefined);
 
+    if (page.url().includes("/cs/tloading")) {
+      const continueButton = page.getByText("Devam Et", {
+        exact: true,
+      });
+
+      if (await continueButton.isVisible().catch(() => false)) {
+        await continueButton.click();
+
+        await page
+          .waitForLoadState("domcontentloaded", {
+            timeout: 15_000,
+          })
+          .catch(() => undefined);
+
+        await page.waitForTimeout(3_000);
+      }
+    }
+
+    if (page.url().includes("/cs/tloading")) {
+      throw new SahibindenClientError(
+        "Sahibinden güvenlik kontrolü URL üzerinden otomatik erişimi engelledi. Tarayıcı uzantısıyla veya manuel girişle devam edebilirsiniz.",
+        403,
+        "ACCESS_BLOCKED"
+      );
+    }
+
     const html = await page.content();
 
     if (!html.trim()) {

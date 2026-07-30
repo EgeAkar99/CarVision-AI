@@ -1,6 +1,7 @@
 export const runtime = "nodejs";
 
 import { analyzeVehicle } from "../../../services/ai";
+import { getVehicleFromListing } from "../../../services/vehicle";
 import { createClient } from "../../../lib/supabase/server";
 import type {
   BrowserExtensionComparableInput,
@@ -314,18 +315,14 @@ export async function POST(request: Request) {
     let comparables: ComparableVehicle[] = [];
 
     if (body.source === "listing") {
-      return Response.json(
-        {
-          success: false,
-          code: "EXTENSION_REQUIRED",
-          message:
-            "İlan analizi için CarVision AI tarayıcı uzantısını kullanın.",
-        },
-        {
-          status: 400,
-          headers: corsHeaders,
-        }
-      );
+      listingUrl = body.listingUrl?.trim();
+
+      if (!listingUrl) {
+        throw new Error("İlan bağlantısı zorunludur.");
+      }
+
+      vehicle = await getVehicleFromListing(listingUrl);
+      vehicle.listingUrl = listingUrl;
     } else if (body.source === "manual") {
       vehicle = validateManualVehicle(body.vehicle);
       listingUrl = body.listingUrl?.trim() || undefined;

@@ -8,7 +8,7 @@ import type {
   BrowserExtensionVehicleInput,
 } from "../types/vehicle";
 
-type AnalysisMode = "listing" | "manual";
+type AnalysisMode = "listing" | "url" | "manual";
 
 type AnalyzeApiResponse = {
   success: boolean;
@@ -210,6 +210,35 @@ export default function AnalysisForm() {
         vehicle: browserVehicle,
         comparables: browserComparables,
       };
+    } else if (mode === "url") {
+      const normalizedListingUrl = listingUrl.trim();
+
+      if (!normalizedListingUrl) {
+        setMessage("Lütfen Sahibinden ilan bağlantısını gir.");
+        setErrorCode("VALIDATION_ERROR");
+        return;
+      }
+
+      try {
+        const parsedUrl = new URL(normalizedListingUrl);
+        const hostname = parsedUrl.hostname.toLowerCase();
+
+        if (
+          hostname !== "sahibinden.com" &&
+          !hostname.endsWith(".sahibinden.com")
+        ) {
+          throw new Error();
+        }
+      } catch {
+        setMessage("Geçerli bir Sahibinden ilan bağlantısı gir.");
+        setErrorCode("VALIDATION_ERROR");
+        return;
+      }
+
+      requestBody = {
+        source: "listing",
+        listingUrl: normalizedListingUrl,
+      };
     } else {
       requestBody = {
         source: "manual",
@@ -273,7 +302,7 @@ export default function AnalysisForm() {
 
   return (
     <div className="mx-auto mt-10 w-full max-w-4xl">
-      <div className="glass-card mb-5 grid grid-cols-2 rounded-2xl p-1.5 shadow-2xl shadow-slate-950/20">
+      <div className="glass-card mb-5 grid grid-cols-3 rounded-2xl p-1.5 shadow-2xl shadow-slate-950/20">
         <button
           type="button"
           onClick={() => changeMode("listing")}
@@ -288,8 +317,20 @@ export default function AnalysisForm() {
 
         <button
           type="button"
+          onClick={() => changeMode("url")}
+          className={`rounded-xl px-2 py-3 text-xs font-semibold transition sm:px-4 sm:text-sm ${
+            mode === "url"
+              ? "primary-glow bg-gradient-to-r from-emerald-400 to-emerald-500 text-slate-950"
+              : "text-slate-300 hover:text-white"
+          }`}
+        >
+          URL ile Analiz
+        </button>
+
+        <button
+          type="button"
           onClick={() => changeMode("manual")}
-          className={`rounded-xl px-3 py-3 text-xs font-semibold transition sm:px-4 sm:text-sm ${
+          className={`rounded-xl px-2 py-3 text-xs font-semibold transition sm:px-4 sm:text-sm ${
             mode === "manual"
               ? "primary-glow bg-gradient-to-r from-emerald-400 to-emerald-500 text-slate-950"
               : "text-slate-300 hover:text-white"
@@ -369,6 +410,44 @@ export default function AnalysisForm() {
                 </button>
               </div>
             )}
+          </div>
+        ) : mode === "url" ? (
+          <div className="glass-card rounded-3xl p-5 sm:p-6">
+            <div className="rounded-2xl border border-slate-500/30 bg-slate-950/35 p-5">
+              <p className="font-semibold text-white">
+                Sahibinden ilan bağlantısını yapıştır
+              </p>
+
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                İlan bilgileri bağlantı üzerinden okunarak mevcut CarVision AI
+                analiz raporu hazırlanacaktır.
+              </p>
+
+              <label
+                htmlFor="listing-url"
+                className="mt-5 block text-sm font-medium text-slate-200"
+              >
+                İlan URL&apos;si
+              </label>
+
+              <input
+                id="listing-url"
+                type="url"
+                value={listingUrl}
+                onChange={(event) => setListingUrl(event.target.value)}
+                placeholder="https://www.sahibinden.com/ilan/..."
+                disabled={isLoading}
+                className="mt-2 w-full rounded-xl border border-slate-500/35 bg-slate-950/45 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="primary-glow mt-5 w-full rounded-2xl bg-gradient-to-r from-emerald-400 to-emerald-500 px-6 py-4 font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:from-emerald-300 hover:to-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isLoading ? "Analiz Ediliyor..." : "URL ile İlanı Analiz Et"}
+              </button>
+            </div>
           </div>
         ) : (
           <div className="glass-card rounded-3xl p-6">
