@@ -1,7 +1,6 @@
 export const runtime = "nodejs";
 
 import { analyzeVehicle } from "../../../services/ai";
-import { getVehicleFromListing } from "../../../services/vehicle";
 import { createClient } from "../../../lib/supabase/server";
 import type {
   BrowserExtensionComparableInput,
@@ -314,18 +313,8 @@ export async function POST(request: Request) {
     let listingUrl: string | undefined;
     let comparables: ComparableVehicle[] = [];
 
-    if (body.source === "listing") {
-      listingUrl = body.listingUrl?.trim();
-
-      if (!listingUrl) {
-        throw new Error("İlan bağlantısı zorunludur.");
-      }
-
-      vehicle = await getVehicleFromListing(listingUrl);
-      vehicle.listingUrl = listingUrl;
-    } else if (body.source === "manual") {
+    if (body.source === "manual") {
       vehicle = validateManualVehicle(body.vehicle);
-      listingUrl = body.listingUrl?.trim() || undefined;
     } else if (body.source === "browser-extension") {
       vehicle = validateBrowserExtensionVehicle(body.vehicle);
       listingUrl = body.vehicle.url?.trim() || undefined;
