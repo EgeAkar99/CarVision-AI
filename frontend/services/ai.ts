@@ -84,6 +84,26 @@ function normalizeText(value: string): string {
     .replaceAll("ç", "c");
 }
 
+function isNegatedRiskKeyword(
+  text: string,
+  keyword: string
+): boolean {
+  const escapedKeyword = keyword.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    "\\$&"
+  );
+
+  const negationPattern = new RegExp(
+    `${escapedKeyword}` +
+      `(?:(?![.!?;\\n]|\\b(?:ama|fakat|ancak|lakin)\\b).){0,70}` +
+      `\\b(?:yok(?:tur)?|degil(?:dir)?|bulunmuyor|bulunmamaktadir|` +
+      `olmamistir|cikmamis|islemsiz|yapilmamis)\\b`,
+    "i"
+  );
+
+  return negationPattern.test(text);
+}
+
 function createVehicleSeed(vehicle: VehicleData): number {
   const vehicleText = [
     getString(vehicle, ["brand", "make", "marka"]),
@@ -1147,34 +1167,152 @@ function analyzeDescription(
     getString(vehicle, ["description", "aciklama"])
   );
 
+  const heavyDamageValue = normalizeText(
+    getString(vehicle, [
+      "heavyDamage",
+      "agirHasar",
+      "agirHasarKaydi",
+    ])
+  );
+
+  const negativeValues = [
+    "hayir",
+    "yok",
+    "yoktur",
+    "degil",
+    "bulunmuyor",
+    "bulunmamaktadir",
+  ];
+
+  const positiveValues = [
+    "evet",
+    "var",
+    "vardir",
+    "mevcut",
+    "agir hasarli",
+  ];
+
+  const heavyDamageDeclaredNo = negativeValues.some(
+    (value) =>
+      heavyDamageValue === value ||
+      heavyDamageValue.includes(value)
+  );
+
+  const heavyDamageDeclaredYes =
+    !heavyDamageDeclaredNo &&
+    positiveValues.some(
+      (value) =>
+        heavyDamageValue === value ||
+        heavyDamageValue.includes(value)
+    );
+
+  const detectedKeywords: string[] = [];
+  const detectedClaims: string[] = [];
+  const warnings: string[] = [];
+  const positiveSignals: string[] = [];
+
+  let riskScore = 12;
+
+  if (heavyDamageDeclaredNo) {
+    detectedClaims.push(
+      "İlan bilgilerinde ağır hasar olmadığı belirtilmiş."
+    );
+    positiveSignals.push(
+      "İlan bilgilerinde ağır hasar olmadığı belirtilmiş."
+    );
+    riskScore -= 5;
+  }
+
+  if (heavyDamageDeclaredYes) {
+    detectedKeywords.push("agir hasar");
+    warnings.push(
+      "İlan bilgilerinde aracın ağır hasarlı olduğu belirtilmiş."
+    );
+    riskScore += 60;
+  }
+
   if (!description) {
+    riskScore += 20;
+    riskScore = Math.max(5, Math.min(100, riskScore));
+
+    const riskLevel =
+      riskScore >= 65
+        ? "high"
+        : riskScore >= 35
+          ? "medium"
+          : "low";
+
     return {
-      riskLevel: "medium",
-      riskScore: 45,
-      detectedKeywords: [],
-      detectedClaims: [],
+      riskLevel,
+      riskScore,
+      detectedKeywords: [...new Set(detectedKeywords)],
+      detectedClaims: [...new Set(detectedClaims)],
       warnings: [
-        "İlan açıklaması bulunmadığı için araç geçmişi yeterince değerlendirilemedi.",
+        ...new Set([
+          ...warnings,
+          "İlan açıklaması bulunmadığı için ek mekanik ve kullanım bilgileri değerlendirilemedi.",
+        ]),
       ],
-      positiveSignals: [],
+      positiveSignals: [...new Set(positiveSignals)],
       summary:
-        "İlan açıklaması bulunmuyor. Hasar, bakım ve kullanım geçmişi satıcıdan belgeleriyle istenmelidir.",
+        "İlan açıklaması bulunmuyor. Araç geçmişi, bakım durumu ve mevcut arızalar satıcıdan belgeleriyle istenmelidir.",
     };
   }
 
-  const riskPatterns = [
-    {
-      keywords: ["agir hasar", "pert", "hurda"],
-      warning:
-        "Ağır hasar veya ciddi kaza geçmişine işaret eden ifade tespit edildi.",
-      score: 35,
-    },
-    {
-      keywords: ["sase", "podye", "direk", "tavan"],
-      warning:
-        "Taşıyıcı veya kritik gövde parçalarıyla ilgili ifade tespit edildi.",
-      score: 24,
-    },
+  const sentences = description
+    .split(/[.!?;\n]+/)
+    .map((sentence) => sentence.trim())
+    .filter(Boolean);
+
+  function sentenceHasKeyword(
+    sentence: string,
+    keyword: string
+  ) {
+    return sentence.includes(keyword);
+  }
+
+  function sentenceNegatesKeyword(
+    sentence: string,
+    keyword: string
+  ) {
+    return isNegatedRiskKeyword(sentence, keyword);
+  }
+
+  function findAffirmativeKeywords(keywords: string[]) {
+    const matches: string[] = [];
+
+    for (const sentence of sentences) {
+      for (const keyword of keywords) {
+        if (
+          sentenceHasKeyword(sentence, keyword) &&
+          !sentenceNegatesKeyword(sentence, keyword)
+        ) {
+          matches.push(keyword);
+        }
+      }
+    }
+
+    return [...new Set(matches)];
+  }
+
+  function findNegatedKeywords(keywords: string[]) {
+    const matches: string[] = [];
+
+    for (const sentence of sentences) {
+      for (const keyword of keywords) {
+        if (
+          sentenceHasKeyword(sentence, keyword) &&
+          sentenceNegatesKeyword(sentence, keyword)
+        ) {
+          matches.push(keyword);
+        }
+      }
+    }
+
+    return [...new Set(matches)];
+  }
+
+  const descriptionRiskPatterns = [
     {
       keywords: [
         "motor yapildi",
@@ -1182,19 +1320,61 @@ function analyzeDescription(
         "sandik motor",
       ],
       warning:
-        "Motorun geçmişte kapsamlı işlem gördüğüne dair ifade tespit edildi.",
+        "Motorun geçmişte kapsamlı işlem gördüğüne dair ifade bulundu.",
       score: 18,
     },
     {
-      keywords: ["degisen", "boyali", "lokal boya"],
+      keywords: [
+        "sanziman vuruntu",
+        "sanziman arizasi",
+        "vites gecislerinde vuruntu",
+      ],
       warning:
-        "Kaporta işlemi veya değişen parça bilgisi tespit edildi.",
-      score: 10,
+        "Şanzıman veya vites geçişleriyle ilgili sorun ifadesi bulundu.",
+      score: 25,
     },
     {
-      keywords: ["masrafli", "masraf vardir", "arizali"],
+      keywords: [
+        "yag yakiyor",
+        "yag eksiltiyor",
+        "su eksiltiyor",
+        "hararet yapiyor",
+      ],
       warning:
-        "Araçta mevcut veya yakın zamanda oluşabilecek masraf ifadesi tespit edildi.",
+        "Motorun çalışma durumu veya sıvı eksiltmesiyle ilgili risk ifadesi bulundu.",
+      score: 28,
+    },
+    {
+      keywords: [
+        "turbo arizali",
+        "turbo revizyonlu",
+        "turbo degisecek",
+      ],
+      warning:
+        "Turbo sistemiyle ilgili işlem veya arıza ifadesi bulundu.",
+      score: 20,
+    },
+    {
+      keywords: [
+        "airbag acmis",
+        "airbag patlak",
+        "airbag islemli",
+        "airbag tamirli",
+        "eirbeg islemli",
+      ],
+      warning:
+        "Hava yastığı sistemiyle ilgili işlem veya hasar ifadesi bulundu.",
+      score: 30,
+    },
+    {
+      keywords: [
+        "masrafli",
+        "masraf vardir",
+        "arizali",
+        "masrafi var",
+      ],
+      warning:
+        "Araçta mevcut veya yakın zamanda oluşabilecek masraf ifadesi bulundu.",
       score: 20,
     },
     {
@@ -1204,76 +1384,89 @@ function analyzeDescription(
         "kiralik cikmasi",
       ],
       warning:
-        "Yoğun kullanım geçmişine işaret eden ifade tespit edildi.",
+        "Yoğun kullanım geçmişine işaret eden ifade bulundu.",
       score: 28,
     },
     {
-      keywords: ["kilometre dusurulmus", "km dusurulmus"],
+      keywords: [
+        "kilometre dusurulmus",
+        "km dusurulmus",
+      ],
       warning:
-        "Kilometre güvenilirliğiyle ilgili ciddi risk ifadesi tespit edildi.",
+        "Kilometre güvenilirliğiyle ilgili ciddi risk ifadesi bulundu.",
       score: 40,
     },
   ];
 
+  for (const pattern of descriptionRiskPatterns) {
+    const matchedKeywords =
+      findAffirmativeKeywords(pattern.keywords);
+
+    if (matchedKeywords.length === 0) {
+      continue;
+    }
+
+    detectedKeywords.push(...matchedKeywords);
+    warnings.push(pattern.warning);
+    riskScore += pattern.score;
+  }
+
   const positivePatterns = [
     {
-      keywords: ["bakimlari yapildi", "bakimlari yeni"],
+      keywords: [
+        "bakimlari yapildi",
+        "bakimlari yeni",
+        "bakimlari tam",
+      ],
       signal: "Bakımların yapıldığı belirtilmiş.",
     },
     {
-      keywords: ["yetkili servis", "servis bakimli"],
+      keywords: [
+        "yetkili servis",
+        "servis bakimli",
+      ],
       signal:
         "Servis bakım geçmişiyle ilgili olumlu ifade bulunuyor.",
     },
     {
-      keywords: ["ekspertiz raporu", "ekspertiz mevcut"],
-      signal: "Ekspertiz raporu bulunduğu belirtilmiş.",
+      keywords: [
+        "ekspertiz raporu",
+        "ekspertiz mevcut",
+      ],
+      signal:
+        "Ekspertiz raporu bulunduğu belirtilmiş.",
     },
     {
-      keywords: ["tramer yok", "hasar kaydi yok"],
-      signal: "Hasar kaydı olmadığı belirtilmiş.",
+      keywords: [
+        "km orijinal",
+        "kilometre orijinal",
+      ],
+      signal:
+        "Kilometrenin orijinal olduğu belirtilmiş.",
     },
     {
-      keywords: ["km orijinal", "kilometre orijinal"],
-      signal: "Kilometrenin orijinal olduğu belirtilmiş.",
-    },
-    {
-      keywords: ["tek el", "ilk sahibinden"],
+      keywords: [
+        "tek el",
+        "ilk sahibinden",
+      ],
       signal:
         "Sahiplik geçmişiyle ilgili olumlu ifade bulunuyor.",
     },
   ];
 
-  const detectedKeywords: string[] = [];
-  const detectedClaims: string[] = [];
-  const warnings: string[] = [];
-  const positiveSignals: string[] = [];
-
-  let riskScore = 15;
-
-  for (const pattern of riskPatterns) {
-    const matchedKeywords = pattern.keywords.filter((keyword) =>
-      description.includes(keyword)
-    );
-
-    if (matchedKeywords.length > 0) {
-      detectedKeywords.push(...matchedKeywords);
-      warnings.push(pattern.warning);
-      riskScore += pattern.score;
-    }
-  }
-
   for (const pattern of positivePatterns) {
-    const matchedKeywords = pattern.keywords.filter((keyword) =>
-      description.includes(keyword)
+    const matchedKeywords = pattern.keywords.filter(
+      (keyword) => description.includes(keyword)
     );
 
-    if (matchedKeywords.length > 0) {
-      detectedKeywords.push(...matchedKeywords);
-      detectedClaims.push(pattern.signal);
-      positiveSignals.push(pattern.signal);
-      riskScore -= 5;
+    if (matchedKeywords.length === 0) {
+      continue;
     }
+
+    detectedKeywords.push(...matchedKeywords);
+    detectedClaims.push(pattern.signal);
+    positiveSignals.push(pattern.signal);
+    riskScore -= 4;
   }
 
   riskScore = Math.max(5, Math.min(100, riskScore));
@@ -1285,12 +1478,17 @@ function analyzeDescription(
         ? "medium"
         : "low";
 
-  const summary =
-    riskLevel === "high"
-      ? "İlan açıklamasında ciddi risk ifadeleri bulunuyor. Ekspertiz ve belge kontrolü yapılmadan araç için karar verilmemelidir."
+  const hasConflict = warnings.some((warning) =>
+    warning.includes("çelişiyor")
+  );
+
+  const summary = hasConflict
+    ? "İlanın yapılandırılmış bilgileri ile satıcı açıklaması arasında çelişki bulundu. Satıcıdan ekspertiz raporu ve resmi kayıtlarla doğrulama istenmelidir."
+    : riskLevel === "high"
+      ? "İlan bilgilerinde veya açıklamasında ciddi risk işaretleri bulunuyor. Ekspertiz ve belge kontrolü yapılmadan karar verilmemelidir."
       : riskLevel === "medium"
-        ? "İlan açıklamasında dikkat edilmesi gereken bazı ifadeler bulunuyor. Satıcı beyanları ekspertiz ve belgelerle doğrulanmalıdır."
-        : "İlan açıklamasında belirgin bir yüksek risk ifadesi bulunmadı. Yine de tüm bilgiler ekspertizle doğrulanmalıdır.";
+        ? "İlan açıklamasında dikkat edilmesi gereken ek bilgiler bulunuyor. Satıcı beyanları ekspertiz ve belgelerle doğrulanmalıdır."
+        : "Yapılandırılmış ilan bilgileri ve açıklamada belirgin bir yüksek risk işareti bulunmadı. Yine de tüm bilgiler ekspertizle doğrulanmalıdır.";
 
   return {
     riskLevel,

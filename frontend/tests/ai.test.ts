@@ -95,11 +95,12 @@ describe("analyzeVehicle", () => {
     expect(result.purchaseRiskAnalysis).toBeDefined();
   });
 
-  it("riskli açıklamayı tespit eder", async () => {
+  it("yapılandırılmış ağır hasar bilgisini ciddi risk sayar", async () => {
     const riskyVehicle: Vehicle = {
       ...baseVehicle,
+      heavyDamage: "Evet",
       description:
-        "Araç ağır hasar kayıtlıdır. Şase işlemli, podye düzeltmeli ve direk işlem görmüştür.",
+        "Ekspertiz raporu mevcuttur.",
     };
 
     const result = await analyzeVehicle(
@@ -112,8 +113,43 @@ describe("analyzeVehicle", () => {
     ).toBe("high");
 
     expect(
+      result.descriptionAnalysis.warnings
+    ).toContain(
+      "İlan bilgilerinde aracın ağır hasarlı olduğu belirtilmiş."
+    );
+
+    expect(
       result.descriptionAnalysis.riskScore
     ).toBeGreaterThanOrEqual(50);
+  });
+
+  it("kaporta ve ağır hasar kelimelerini açıklama riski olarak kullanmaz", async () => {
+    const vehicle: Vehicle = {
+      ...baseVehicle,
+      heavyDamage: "Hayır",
+      description:
+        "Ekspertiz raporu mevcuttur. Pert, ağır hasar, şase, podye, değişen ve boyalı kelimeleri açıklamada geçmektedir.",
+    };
+
+    const result = await analyzeVehicle(
+      vehicle,
+      comparables
+    );
+
+    expect(
+      result.descriptionAnalysis.warnings.some(
+        (warning) =>
+          warning.includes("ağır hasar") ||
+          warning.includes("Kaporta") ||
+          warning.includes("Taşıyıcı")
+      )
+    ).toBe(false);
+
+    expect(
+      result.descriptionAnalysis.positiveSignals
+    ).toContain(
+      "İlan bilgilerinde ağır hasar olmadığı belirtilmiş."
+    );
   });
 
   it("pazarlık analizi üretir", async () => {
