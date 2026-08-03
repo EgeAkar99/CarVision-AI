@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const links = [
   { href: "/admin", label: "Dashboard" },
@@ -7,10 +10,24 @@ const links = [
 ];
 
 export function AdminSidebar() {
+  const pathname = usePathname();
+
+  function isActive(href: string) {
+    if (href === "/admin") {
+      return pathname === "/admin";
+    }
+
+    return pathname === href || pathname.startsWith(`${href}/`);
+  }
+
   return (
-    <aside className="border-b border-white/10 bg-slate-950/70 lg:min-h-screen lg:w-64 lg:border-b-0 lg:border-r">
+    <aside className="border-b border-white/10 bg-slate-950/70 lg:min-h-screen lg:w-64 lg:flex-none lg:border-b-0 lg:border-r">
       <div className="p-6">
-        <Link href="/admin" className="text-xl font-bold text-white">
+        <Link
+          href="/admin"
+          prefetch
+          className="inline-block text-xl font-bold text-white transition hover:text-emerald-300"
+        >
           CarVision AI
         </Link>
 
@@ -20,15 +37,25 @@ export function AdminSidebar() {
       </div>
 
       <nav className="flex gap-2 overflow-x-auto px-4 pb-4 lg:block lg:space-y-2">
-        {links.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className="block whitespace-nowrap rounded-xl px-4 py-3 text-sm font-medium text-slate-300 transition hover:bg-white/5 hover:text-white"
-          >
-            {link.label}
-          </Link>
-        ))}
+        {links.map((link) => {
+          const active = isActive(link.href);
+
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              prefetch
+              aria-current={active ? "page" : undefined}
+              className={`flex min-h-12 min-w-max items-center rounded-xl border px-4 py-3 text-sm font-semibold transition lg:w-full ${
+                active
+                  ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-300"
+                  : "border-transparent text-slate-300 hover:border-white/10 hover:bg-white/[0.06] hover:text-white active:scale-[0.98]"
+              }`}
+            >
+              {link.label}
+            </Link>
+          );
+        })}
       </nav>
     </aside>
   );

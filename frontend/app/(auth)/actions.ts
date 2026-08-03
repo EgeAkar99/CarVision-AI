@@ -116,10 +116,12 @@ export async function register(formData: FormData) {
   });
 
   if (error) {
-    redirectWithMessage(
-      "/register",
-      "error",
-      "Hesap oluşturulamadı. E-posta adresini ve bilgilerinizi kontrol edin.",
+     console.error("Supabase kayıt hatası:", error);
+
+     redirectWithMessage(
+     "/register",
+     "error",
+     `Hata: ${error.message}`,
     );
   }
 

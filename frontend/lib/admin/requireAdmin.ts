@@ -1,13 +1,16 @@
+import { cache } from "react";
+
 import { createClient } from "@/lib/supabase/server";
 
-export async function requireAdmin() {
+export const requireAdmin = cache(async () => {
   const supabase = await createClient();
 
   const {
     data: { user },
+    error,
   } = await supabase.auth.getUser();
 
-  if (!user) {
+  if (error || !user) {
     throw new Error("Unauthorized");
   }
 
@@ -18,4 +21,4 @@ export async function requireAdmin() {
   }
 
   return user;
-}
+});
