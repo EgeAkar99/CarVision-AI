@@ -1,4 +1,5 @@
 import Image from "next/image";
+import DownloadPdfButton from "./DownloadPdfButton";
 
 import type {
   AnalysisResult as AnalysisResultType,
@@ -229,16 +230,20 @@ return (
               </span>
             </div>
 
-            {vehicle.listingUrl && (
-              <a
-                href={vehicle.listingUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="w-fit rounded-lg border border-slate-500/35 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-emerald-500 hover:text-emerald-400"
-              >
-                İlanı Aç
-              </a>
-            )}
+            <div className="flex flex-wrap gap-3">
+              <DownloadPdfButton result={result} />
+
+              {vehicle.listingUrl && (
+                <a
+                  href={vehicle.listingUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-lg border border-slate-500/35 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-emerald-500 hover:text-emerald-400"
+                >
+                  İlanı Aç
+                </a>
+              )}
+            </div>
           </div>
         </div>
       </div>
