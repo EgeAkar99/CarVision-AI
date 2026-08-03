@@ -1,10 +1,8 @@
-const CACHE_NAME = "carvision-ai-v2";
+const CACHE_NAME = "carvision-ai-v3";
 const OFFLINE_URL = "/offline";
 
-const APP_SHELL = [
-  "/",
+const STATIC_ASSETS = [
   "/offline",
-  "/privacy",
   "/manifest.webmanifest",
   "/android-chrome-192x192.png",
   "/android-chrome-512x512.png",
@@ -13,7 +11,7 @@ const APP_SHELL = [
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
   );
 
   self.skipWaiting();
@@ -36,37 +34,44 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const request = event.request;
+  const url = new URL(request.url);
 
-  if (request.method !== "GET" || request.url.includes("/api/")) {
+  if (request.method !== "GET") {
+    return;
+  }
+
+  if (
+    url.origin !== self.location.origin ||
+    url.pathname.startsWith("/api/") ||
+    url.pathname.startsWith("/_next/")
+  ) {
     return;
   }
 
   if (request.mode === "navigate") {
     event.respondWith(
-      fetch(request).catch(() => caches.match(OFFLINE_URL))
+      fetch(request).catch(async () => {
+        const offlinePage = await caches.match(OFFLINE_URL);
+        return offlinePage || Response.error();
+      })
     );
+
     return;
   }
 
   event.respondWith(
-    caches.match(request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
+    fetch(request)
+      .then((response) => {
+        if (response.ok && STATIC_ASSETS.includes(url.pathname)) {
+          const copy = response.clone();
 
-      return fetch(request).then((response) => {
-        if (!response || response.status !== 200) {
-          return response;
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, copy);
+          });
         }
 
-        const responseCopy = response.clone();
-
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(request, responseCopy);
-        });
-
         return response;
-      });
-    })
+      })
+      .catch(() => caches.match(request))
   );
 });
