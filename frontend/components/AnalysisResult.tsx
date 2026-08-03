@@ -914,20 +914,10 @@ return (
           </div>
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="mt-5 grid grid-cols-2 gap-3">
           <MarketStatCard
             label="Toplam Fotoğraf"
             value={`${photoAnalysis.photoCount}`}
-          />
-
-          <MarketStatCard
-            label="Dış Mekân"
-            value={`${photoAnalysis.exteriorPhotoCount}`}
-          />
-
-          <MarketStatCard
-            label="İç Mekân"
-            value={`${photoAnalysis.interiorPhotoCount}`}
           />
 
           <MarketStatCard

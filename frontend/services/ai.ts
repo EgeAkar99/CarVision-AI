@@ -1505,12 +1505,6 @@ function analyzePhotos(
   vehicle: VehicleData
 ): AnalysisResult["photoAnalysis"] {
   const images = getArray(vehicle, ["images"]);
-  const interiorImages = getArray(vehicle, [
-    "interiorImages",
-  ]);
-  const exteriorImages = getArray(vehicle, [
-    "exteriorImages",
-  ]);
 
   const storedPhotoCount = getNumber(
     vehicle,
@@ -1525,99 +1519,59 @@ function analyzePhotos(
 
   const warnings: string[] = [];
   const positiveSignals: string[] = [];
+  const visualFindings: string[] = [];
 
   let coverageScore = 0;
 
-  if (photoCount >= 20) {
-    coverageScore += 50;
+  if (photoCount >= 30) {
+    coverageScore = 95;
+    positiveSignals.push(
+      "İlanda aracı çok sayıda açıdan değerlendirmeye yetecek fotoğraf bulunuyor."
+    );
+    visualFindings.push(
+      "Fotoğraf sayısı genel gövde ve kondisyon incelemesi için oldukça yeterli seviyede."
+    );
+  } else if (photoCount >= 20) {
+    coverageScore = 85;
     positiveSignals.push(
       "İlanda aracı farklı açılardan değerlendirmeye yetecek sayıda fotoğraf bulunuyor."
     );
-  } else if (photoCount >= 12) {
-    coverageScore += 40;
-    positiveSignals.push(
-      "İlanda genel değerlendirme için yeterli sayıda fotoğraf bulunuyor."
-    );
-  } else if (photoCount >= 6) {
-    coverageScore += 25;
-    warnings.push(
-      "Fotoğraf sayısı sınırlı olduğu için aracın tüm bölümleri değerlendirilemiyor."
-    );
-  } else {
-    coverageScore += 10;
-    warnings.push(
-      "Fotoğraf sayısı çok düşük. Araç kondisyonu fotoğraflardan güvenilir şekilde değerlendirilemez."
-    );
-  }
-
-  if (exteriorImages.length >= 6) {
-    coverageScore += 25;
-    positiveSignals.push(
-      "Dış görünüşü gösteren birden fazla fotoğraf tespit edildi."
-    );
-  } else if (exteriorImages.length > 0) {
-    coverageScore += 12;
-    warnings.push(
-      "Dış görünüş fotoğrafları aracın tüm yönlerini göstermiyor olabilir."
-    );
-  } else {
-    warnings.push(
-      "Dış görünüş fotoğrafları otomatik olarak sınıflandırılamadı."
-    );
-  }
-
-  if (interiorImages.length >= 3) {
-    coverageScore += 25;
-    positiveSignals.push(
-      "İç mekân kondisyonunu değerlendirebilecek fotoğraflar bulunuyor."
-    );
-  } else if (interiorImages.length > 0) {
-    coverageScore += 12;
-    warnings.push(
-      "İç mekân fotoğrafları sınırlı olduğu için yıpranma seviyesi net değerlendirilemeyebilir."
-    );
-  } else {
-    warnings.push(
-      "İç mekân fotoğrafı otomatik olarak tespit edilemedi."
-    );
-  }
-
-  coverageScore = Math.max(
-    0,
-    Math.min(100, Math.round(coverageScore))
-  );
-
-  const visualFindings: string[] = [];
-
-  if (photoCount >= 12) {
     visualFindings.push(
       "Fotoğraf sayısı genel gövde ve kondisyon incelemesi için yeterli seviyede."
     );
-  }
-
-  if (exteriorImages.length >= 6) {
+  } else if (photoCount >= 12) {
+    coverageScore = 70;
+    positiveSignals.push(
+      "İlanda genel değerlendirme için yeterli sayıda fotoğraf bulunuyor."
+    );
     visualFindings.push(
-      "Dış gövdenin birden fazla açıdan görüntülendiği tespit edildi."
+      "Fotoğraf sayısı temel kondisyon değerlendirmesi için yeterli görünüyor."
+    );
+  } else if (photoCount >= 6) {
+    coverageScore = 45;
+    warnings.push(
+      "Fotoğraf sayısı sınırlı olduğu için aracın tüm bölümleri değerlendirilemiyor."
+    );
+    visualFindings.push(
+      "Eksik açılar nedeniyle aracın tamamı fotoğraflardan güvenilir şekilde değerlendirilemiyor."
+    );
+  } else if (photoCount > 0) {
+    coverageScore = 20;
+    warnings.push(
+      "Fotoğraf sayısı çok düşük. Araç kondisyonu fotoğraflardan güvenilir şekilde değerlendirilemez."
+    );
+    visualFindings.push(
+      "Satıcıdan aracın farklı açılardan çekilmiş ek fotoğrafları istenmelidir."
     );
   } else {
-    visualFindings.push(
-      "Kaput, tampon, çamurluk ve kapı hizaları fotoğraflardan güvenilir şekilde değerlendirilemiyor."
+    warnings.push(
+      "İlan fotoğrafları alınamadığı için görsel kondisyon değerlendirmesi yapılamadı."
     );
   }
 
-  if (interiorImages.length >= 3) {
+  if (photoCount > 0 && photoCount < 8) {
     visualFindings.push(
-      "Direksiyon, koltuk ve iç trim yıpranmasını değerlendirebilecek iç mekân fotoğrafları mevcut."
-    );
-  } else {
-    visualFindings.push(
-      "Direksiyon, koltuk ve iç trim yıpranması için yeterli iç mekân fotoğrafı bulunamadı."
-    );
-  }
-
-  if (photoCount < 8) {
-    visualFindings.push(
-      "Jant, lastik, motor bölmesi ve bagaj için ek fotoğraf istenmeli."
+      "Jant, lastik, motor bölmesi, bagaj ve detaylı gövde fotoğrafları istenmelidir."
     );
   }
 
@@ -1632,17 +1586,17 @@ function analyzePhotos(
 
   const summary =
     conditionLevel === "good"
-      ? "İlanın fotoğraf kapsamı genel kondisyon değerlendirmesi için yeterli görünüyor. Görseller yine de fiziksel ekspertizin yerini tutmaz."
+      ? "İlanın toplam fotoğraf sayısı genel kondisyon değerlendirmesi için yeterli görünüyor. Görseller yine de fiziksel ekspertizin yerini tutmaz."
       : conditionLevel === "medium"
-        ? "Fotoğraflar aracın bazı bölümlerini değerlendirmeye imkân veriyor ancak eksik açılar nedeniyle kesin kondisyon sonucu çıkarılamaz."
+        ? "Fotoğraf sayısı temel değerlendirmeye imkân veriyor ancak eksik açılar nedeniyle kesin kondisyon sonucu çıkarılamaz."
         : conditionLevel === "poor"
-          ? "Fotoğraf kapsamı yetersiz. Satıcıdan dış gövde, iç mekân, motor bölmesi, jantlar ve hasarlı bölgeler için ek fotoğraflar istenmelidir."
+          ? "Fotoğraf sayısı yetersiz. Satıcıdan aracın farklı açılarını gösteren ek fotoğraflar istenmelidir."
           : "İlan fotoğrafları alınamadığı için görsel kondisyon değerlendirmesi yapılamadı.";
 
   return {
     photoCount,
-    exteriorPhotoCount: exteriorImages.length,
-    interiorPhotoCount: interiorImages.length,
+    exteriorPhotoCount: 0,
+    interiorPhotoCount: 0,
     coverageScore,
     conditionLevel,
     warnings: [...new Set(warnings)],
