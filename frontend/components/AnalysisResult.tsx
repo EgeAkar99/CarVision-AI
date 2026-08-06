@@ -1,4 +1,3 @@
-import Image from "next/image";
 import DownloadPdfButton from "./DownloadPdfButton";
 
 import type {
@@ -174,33 +173,20 @@ export default function AnalysisResult({
   ].filter((detail) => detail.value);
 
   const sectionStyle =
-  "glass-card rounded-[26px] border border-white/10 p-5 shadow-xl shadow-slate-950/10 transition-all duration-300 hover:border-emerald-400/20 hover:shadow-emerald-500/5 sm:p-6";
+    "glass-card rounded-[26px] border border-white/10 p-5 shadow-xl shadow-slate-950/10 transition-all duration-300 hover:border-emerald-400/20 hover:shadow-emerald-500/5 sm:p-6";
 
-return (
+  return (
     <section className="glass-card mt-8 overflow-hidden rounded-[22px] sm:mt-10 sm:rounded-[28px]">
       <div className="border-b border-white/5 p-4 sm:p-6">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[320px_1fr]">
-          {vehicle.mainImage && (
-            <div className="overflow-hidden rounded-xl border border-slate-600/30 bg-slate-950/45">
-              <Image
-                  src={vehicle.mainImage}
-                  alt={`${vehicle.brand} ${vehicle.model}`}
-                  width={640}
-                  height={256}
-                  className="h-64 w-full object-cover"
-                  priority
-                />
-            </div>
-          )}
-
-          <div className="flex flex-col justify-between gap-6">
+        <div className="w-full">
+          <div className="flex min-h-[220px] flex-col justify-between gap-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <p className="text-sm font-medium text-emerald-400">
                   AI Analiz Sonucu
                 </p>
 
-                <h2 className="mt-2 text-xl font-bold text-white sm:text-2xl">
+                <h2 className="mt-2 text-2xl font-bold tracking-tight text-white sm:text-3xl">
                   {vehicle.year} {vehicle.brand} {vehicle.model}
                 </h2>
 
@@ -220,7 +206,7 @@ return (
                 </p>
               </div>
 
-              <span className="primary-glow w-fit rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-sm font-semibold text-emerald-300">
+              <span className="primary-glow self-start rounded-full border border-emerald-400/20 bg-emerald-400/10 px-5 py-3 text-sm font-semibold text-emerald-300">
                 {
                   purchaseRecommendationLabels[
                     purchaseRecommendation
@@ -229,7 +215,7 @@ return (
               </span>
             </div>
 
-            <div className="flex flex-wrap gap-3">
+            <div className="mt-2 flex flex-wrap gap-3">
               <DownloadPdfButton result={result} />
 
               {vehicle.listingUrl && (
