@@ -969,7 +969,6 @@ function createPurchaseRiskAnalysis(args: {
   mileage: number;
   vehicleAge: number;
   descriptionRisk: number;
-  photoCoverage: number;
   marketConfidence: number;
   damageRecord: number;
   chronicRiskCount: number;
@@ -977,7 +976,6 @@ function createPurchaseRiskAnalysis(args: {
   let risk = 50;
 
   risk += args.descriptionRisk * 0.25;
-  risk += Math.max(0, 70 - args.photoCoverage) * 0.20;
   risk += Math.max(0, 80 - args.marketConfidence) * 0.20;
   risk += args.chronicRiskCount * 4;
   risk += Math.min(args.mileage / 15000, 20);
@@ -1295,23 +1293,6 @@ function analyzeDescription(
     return [...new Set(matches)];
   }
 
-  function findNegatedKeywords(keywords: string[]) {
-    const matches: string[] = [];
-
-    for (const sentence of sentences) {
-      for (const keyword of keywords) {
-        if (
-          sentenceHasKeyword(sentence, keyword) &&
-          sentenceNegatesKeyword(sentence, keyword)
-        ) {
-          matches.push(keyword);
-        }
-      }
-    }
-
-    return [...new Set(matches)];
-  }
-
   const descriptionRiskPatterns = [
     {
       keywords: [
@@ -1501,111 +1482,6 @@ function analyzeDescription(
   };
 }
 
-function analyzePhotos(
-  vehicle: VehicleData
-): AnalysisResult["photoAnalysis"] {
-  const images = getArray(vehicle, ["images"]);
-
-  const storedPhotoCount = getNumber(
-    vehicle,
-    ["photoCount"],
-    images.length
-  );
-
-  const photoCount = Math.max(
-    storedPhotoCount,
-    images.length
-  );
-
-  const warnings: string[] = [];
-  const positiveSignals: string[] = [];
-  const visualFindings: string[] = [];
-
-  let coverageScore = 0;
-
-  if (photoCount >= 30) {
-    coverageScore = 95;
-    positiveSignals.push(
-      "İlanda aracı çok sayıda açıdan değerlendirmeye yetecek fotoğraf bulunuyor."
-    );
-    visualFindings.push(
-      "Fotoğraf sayısı genel gövde ve kondisyon incelemesi için oldukça yeterli seviyede."
-    );
-  } else if (photoCount >= 20) {
-    coverageScore = 85;
-    positiveSignals.push(
-      "İlanda aracı farklı açılardan değerlendirmeye yetecek sayıda fotoğraf bulunuyor."
-    );
-    visualFindings.push(
-      "Fotoğraf sayısı genel gövde ve kondisyon incelemesi için yeterli seviyede."
-    );
-  } else if (photoCount >= 12) {
-    coverageScore = 70;
-    positiveSignals.push(
-      "İlanda genel değerlendirme için yeterli sayıda fotoğraf bulunuyor."
-    );
-    visualFindings.push(
-      "Fotoğraf sayısı temel kondisyon değerlendirmesi için yeterli görünüyor."
-    );
-  } else if (photoCount >= 6) {
-    coverageScore = 45;
-    warnings.push(
-      "Fotoğraf sayısı sınırlı olduğu için aracın tüm bölümleri değerlendirilemiyor."
-    );
-    visualFindings.push(
-      "Eksik açılar nedeniyle aracın tamamı fotoğraflardan güvenilir şekilde değerlendirilemiyor."
-    );
-  } else if (photoCount > 0) {
-    coverageScore = 20;
-    warnings.push(
-      "Fotoğraf sayısı çok düşük. Araç kondisyonu fotoğraflardan güvenilir şekilde değerlendirilemez."
-    );
-    visualFindings.push(
-      "Satıcıdan aracın farklı açılardan çekilmiş ek fotoğrafları istenmelidir."
-    );
-  } else {
-    warnings.push(
-      "İlan fotoğrafları alınamadığı için görsel kondisyon değerlendirmesi yapılamadı."
-    );
-  }
-
-  if (photoCount > 0 && photoCount < 8) {
-    visualFindings.push(
-      "Jant, lastik, motor bölmesi, bagaj ve detaylı gövde fotoğrafları istenmelidir."
-    );
-  }
-
-  const conditionLevel =
-    photoCount === 0
-      ? "unknown"
-      : coverageScore >= 75
-        ? "good"
-        : coverageScore >= 40
-          ? "medium"
-          : "poor";
-
-  const summary =
-    conditionLevel === "good"
-      ? "İlanın toplam fotoğraf sayısı genel kondisyon değerlendirmesi için yeterli görünüyor. Görseller yine de fiziksel ekspertizin yerini tutmaz."
-      : conditionLevel === "medium"
-        ? "Fotoğraf sayısı temel değerlendirmeye imkân veriyor ancak eksik açılar nedeniyle kesin kondisyon sonucu çıkarılamaz."
-        : conditionLevel === "poor"
-          ? "Fotoğraf sayısı yetersiz. Satıcıdan aracın farklı açılarını gösteren ek fotoğraflar istenmelidir."
-          : "İlan fotoğrafları alınamadığı için görsel kondisyon değerlendirmesi yapılamadı.";
-
-  return {
-    photoCount,
-    exteriorPhotoCount: 0,
-    interiorPhotoCount: 0,
-    coverageScore,
-    conditionLevel,
-    warnings: [...new Set(warnings)],
-    positiveSignals: [...new Set(positiveSignals)],
-    visualFindings: [...new Set(visualFindings)],
-    summary,
-  };
-}
-
 export async function analyzeVehicle(
   vehicle: Vehicle,
   providedComparables: ComparableVehicle[] = []
@@ -1660,9 +1536,6 @@ export async function analyzeVehicle(
   const descriptionAnalysis =
     analyzeDescription(vehicleData);
 
-  const photoAnalysis =
-    analyzePhotos(vehicleData);
-
   const vehicleSpecificRisks =
     getVehicleSpecificRisks(vehicle);
 
@@ -1692,7 +1565,6 @@ export async function analyzeVehicle(
         0
       ),
       descriptionRisk: descriptionAnalysis.riskScore,
-      photoCoverage: photoAnalysis.coverageScore,
       marketConfidence: marketAnalysis.confidence,
       damageRecord: getNumber(vehicleData, ["damageRecord","tramer","damageAmount"]),
       chronicRiskCount: vehicleSpecificRisks.length,
@@ -1723,12 +1595,6 @@ export async function analyzeVehicle(
     adjustedScore += 2;
   }
 
-  if (photoAnalysis.coverageScore >= 75) {
-    adjustedScore += 2;
-  } else if (photoAnalysis.coverageScore < 40) {
-    adjustedScore -= 3;
-  }
-
   adjustedScore -= Math.min(
     vehicleSpecificRisks.length * 2,
     8
@@ -1749,9 +1615,8 @@ export async function analyzeVehicle(
     Math.min(
       98,
       Math.round(
-        marketAnalysis.confidence * 0.5 +
-          photoAnalysis.coverageScore * 0.25 +
-          (100 - descriptionAnalysis.riskScore) * 0.15 +
+        marketAnalysis.confidence * 0.65 +
+          (100 - descriptionAnalysis.riskScore) * 0.25 +
           Math.min(equipmentAnalysis.length * 10, 30) * 0.1
       )
     )
@@ -1790,8 +1655,6 @@ export async function analyzeVehicle(
     negotiationAnalysis,
 
     descriptionAnalysis,
-
-    photoAnalysis,
 
     chronicProblems: [
       ...createChronicProblems(vehicleData),

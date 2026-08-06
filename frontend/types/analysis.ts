@@ -58,32 +58,6 @@ export type DescriptionAnalysis = {
   summary: string;
 };
 
-export type PhotoConditionLevel =
-  | "good"
-  | "medium"
-  | "poor"
-  | "unknown";
-
-export type PhotoAnalysis = {
-  photoCount: number;
-
-  exteriorPhotoCount: number;
-
-  interiorPhotoCount: number;
-
-  coverageScore: number;
-
-  conditionLevel: PhotoConditionLevel;
-
-  warnings: string[];
-
-  positiveSignals: string[];
-
-  visualFindings: string[];
-
-  summary: string;
-};
-
 export type OwnershipCostAnalysis = {
   annualMaintenanceCost: number;
   annualFuelCost: number;
@@ -165,8 +139,6 @@ export type AnalysisResult = {
   negotiationAnalysis: NegotiationAnalysis;
 
   descriptionAnalysis: DescriptionAnalysis;
-
-  photoAnalysis: PhotoAnalysis;
 
   chronicProblems: string[];
 

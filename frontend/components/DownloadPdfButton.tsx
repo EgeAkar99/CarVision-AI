@@ -151,7 +151,6 @@ export default function DownloadPdfButton({
         competitivePositioning,
         negotiationAnalysis,
         descriptionAnalysis,
-        photoAnalysis,
         chronicProblems,
         advantages,
         disadvantages,
@@ -535,15 +534,6 @@ export default function DownloadPdfButton({
       y = addParagraph(
         doc,
         `Risk puani: ${descriptionAnalysis.riskScore}/100\n${descriptionAnalysis.summary}`,
-        y,
-      );
-
-      y = ensureSpace(doc, y, 45);
-      y = addTitle(doc, "Fotograf Analizi", y);
-
-      y = addParagraph(
-        doc,
-        `Fotograf sayisi: ${photoAnalysis.photoCount}\nDis fotograf: ${photoAnalysis.exteriorPhotoCount}\nIc fotograf: ${photoAnalysis.interiorPhotoCount}\nKapsama puani: ${photoAnalysis.coverageScore}/100\n${photoAnalysis.summary}`,
         y,
       );
 
