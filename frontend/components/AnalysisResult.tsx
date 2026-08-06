@@ -15,10 +15,10 @@ const purchaseRecommendationLabels: Record<
   PurchaseRecommendation,
   string
 > = {
-  strong_buy: "Güçlü Alım Fırsatı",
-  buy: "Satın Alınabilir",
-  consider: "Dikkatli Değerlendir",
-  avoid: "Uzak Dur",
+  strong_buy: "Çok Güçlü Aday",
+  buy: "Güçlü Aday",
+  consider: "İncelenmeye Değer",
+  avoid: "Yüksek Riskli",
 };
 
 const priceEvaluationLabels: Record<PriceEvaluation, string> = {
@@ -101,12 +101,13 @@ export default function AnalysisResult({
     .slice(0, 5);
 
   const decisionLabel =
-    purchaseRecommendation === "strong_buy" ||
-    purchaseRecommendation === "buy"
-      ? "AL"
-      : purchaseRecommendation === "consider"
-        ? "DİKKATLİ DEĞERLENDİR"
-        : "ALMA";
+    purchaseRecommendation === "strong_buy"
+      ? "ÇOK GÜÇLÜ ADAY"
+      : purchaseRecommendation === "buy"
+        ? "GÜÇLÜ ADAY"
+        : purchaseRecommendation === "consider"
+          ? "İNCELEMEYE DEĞER"
+          : "YÜKSEK RİSKLİ";
 
   const riskLabel =
     purchaseRiskAnalysis.riskLevel === "low"
@@ -298,6 +299,12 @@ export default function AnalysisResult({
               </div>
             </div>
           )}
+
+          <p className="mt-5 border-t border-slate-600/30 pt-4 text-xs leading-5 text-slate-400">
+            Bu sonuç yalnızca karar destek amacıyla hazırlanmıştır. Nihai
+            satın alma kararı öncesinde ekspertiz, servis geçmişi ve resmi
+            kayıtlar mutlaka doğrulanmalıdır.
+          </p>
         </div>
       </div>
 
