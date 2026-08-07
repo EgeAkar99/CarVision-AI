@@ -26,22 +26,22 @@ export default function Navbar({ user }: NavbarProps) {
     "Hesabım";
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-white/10 bg-slate-900/55 shadow-lg shadow-slate-950/10 backdrop-blur-2xl">
+    <nav className="sticky top-0 z-50 border-b border-white/[0.08] bg-[#0a0a0a]/85 shadow-lg shadow-black/20 backdrop-blur-2xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
         <Link
           href="/#home"
           className="flex items-center gap-3"
           onClick={() => setIsOpen(false)}
         >
-          <span className="primary-glow flex h-11 w-11 items-center justify-center rounded-2xl border border-emerald-400/20 bg-gradient-to-br from-emerald-400/20 to-emerald-600/10 text-lg font-black text-emerald-300">
+          <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#c8a96a]/30 bg-gradient-to-br from-[#c8a96a]/15 to-[#b9985a]/5 text-lg font-black text-[#d6b77b] shadow-[0_10px_35px_rgba(200,169,106,0.10)]">
             CV
           </span>
 
           <div>
-            <p className="text-base font-bold text-white sm:text-lg">
-              CarVision <span className="text-emerald-400">AI</span>
+            <p className="text-base font-bold text-[#f5f5f3] sm:text-lg">
+              CarVision <span className="text-[#d6b77b]">AI</span>
             </p>
-            <p className="hidden text-[11px] text-slate-400 sm:block">
+            <p className="hidden text-[11px] text-[#8f918d] sm:block">
               Akıllı araç analiz platformu
             </p>
           </div>
@@ -52,7 +52,7 @@ export default function Navbar({ user }: NavbarProps) {
             <a
               key={item.href}
               href={item.href}
-              className="text-sm font-medium text-slate-300 transition hover:text-white"
+              className="text-sm font-medium text-[#c8c8c4] transition hover:text-[#f5f5f3]"
             >
               {item.label}
             </a>
@@ -60,24 +60,25 @@ export default function Navbar({ user }: NavbarProps) {
 
           <a
             href="#analyze"
-            className="primary-glow rounded-xl bg-gradient-to-r from-emerald-400 to-emerald-500 px-5 py-2.5 text-sm font-bold text-slate-950 transition hover:-translate-y-0.5 hover:from-emerald-300 hover:to-emerald-400"
+            className="rounded-xl border border-[#c8a96a]/35 bg-gradient-to-r from-[#c8a96a] to-[#b9985a] px-5 py-2.5 text-sm font-bold text-[#11100d] shadow-[0_12px_40px_rgba(200,169,106,0.14)] transition hover:-translate-y-0.5 hover:from-[#d6b77b] hover:to-[#c8a96a]"
           >
             Araç Analiz Et
           </a>
 
           {user ? (
-            <div className="flex items-center gap-3 border-l border-white/10 pl-5">
+            <div className="flex items-center gap-3 border-l border-white/[0.08] pl-5">
               <Link
                 href="/analizlerim"
-                className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-2.5 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-400/20"
+                className="rounded-xl border border-[#c8a96a]/25 bg-[#c8a96a]/[0.07] px-4 py-2.5 text-sm font-semibold text-[#d6b77b] transition hover:border-[#c8a96a]/40 hover:bg-[#c8a96a]/[0.11]"
               >
                 Analizlerim
               </Link>
+
               <div className="max-w-32">
-                <p className="truncate text-sm font-semibold text-white">
+                <p className="truncate text-sm font-semibold text-[#f5f5f3]">
                   {displayName}
                 </p>
-                <p className="truncate text-xs text-slate-400">
+                <p className="truncate text-xs text-[#8f918d]">
                   {user.email}
                 </p>
               </div>
@@ -85,24 +86,24 @@ export default function Navbar({ user }: NavbarProps) {
               <form action={logout}>
                 <button
                   type="submit"
-                  className="rounded-xl border border-slate-600/40 bg-slate-800/50 px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:border-red-400/30 hover:bg-red-400/10 hover:text-red-200"
+                  className="rounded-xl border border-white/[0.10] bg-white/[0.035] px-4 py-2.5 text-sm font-semibold text-[#d5d5d1] transition hover:border-red-400/30 hover:bg-red-400/10 hover:text-red-200"
                 >
                   Çıkış Yap
                 </button>
               </form>
             </div>
           ) : (
-            <div className="flex items-center gap-2 border-l border-white/10 pl-5">
+            <div className="flex items-center gap-2 border-l border-white/[0.08] pl-5">
               <Link
                 href="/login"
-                className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:bg-white/5 hover:text-white"
+                className="rounded-xl px-4 py-2.5 text-sm font-semibold text-[#d5d5d1] transition hover:bg-white/[0.04] hover:text-white"
               >
                 Giriş Yap
               </Link>
 
               <Link
                 href="/register"
-                className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-2.5 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-400/20"
+                className="rounded-xl border border-[#c8a96a]/25 bg-[#c8a96a]/[0.07] px-4 py-2.5 text-sm font-semibold text-[#d6b77b] transition hover:border-[#c8a96a]/40 hover:bg-[#c8a96a]/[0.11]"
               >
                 Kayıt Ol
               </Link>
@@ -115,7 +116,7 @@ export default function Navbar({ user }: NavbarProps) {
           onClick={() => setIsOpen((current) => !current)}
           aria-label="Menüyü aç"
           aria-expanded={isOpen}
-          className="rounded-lg border border-slate-600/30 p-2 text-slate-200 md:hidden"
+          className="rounded-lg border border-white/[0.10] p-2 text-[#d5d5d1] md:hidden"
         >
           <span className="block h-0.5 w-5 bg-current" />
           <span className="mt-1.5 block h-0.5 w-5 bg-current" />
@@ -124,14 +125,14 @@ export default function Navbar({ user }: NavbarProps) {
       </div>
 
       {isOpen && (
-        <div className="border-t border-white/10 bg-slate-950/90 px-6 py-4 backdrop-blur-2xl md:hidden">
+        <div className="border-t border-white/[0.08] bg-[#080808]/95 px-6 py-4 backdrop-blur-2xl md:hidden">
           <div className="flex flex-col gap-4">
             {navigationItems.map((item) => (
               <a
                 key={item.href}
                 href={item.href}
                 onClick={() => setIsOpen(false)}
-                className="text-sm font-medium text-slate-200"
+                className="text-sm font-medium text-[#d5d5d1]"
               >
                 {item.label}
               </a>
@@ -140,23 +141,23 @@ export default function Navbar({ user }: NavbarProps) {
             <a
               href="#analyze"
               onClick={() => setIsOpen(false)}
-              className="rounded-xl bg-emerald-500 px-4 py-3 text-center text-sm font-bold text-black"
+              className="rounded-xl border border-[#c8a96a]/35 bg-gradient-to-r from-[#c8a96a] to-[#b9985a] px-4 py-3 text-center text-sm font-bold text-[#11100d]"
             >
               Araç Analiz Et
             </a>
 
-            <div className="border-t border-white/10 pt-4">
+            <div className="border-t border-white/[0.08] pt-4">
               {user ? (
                 <div className="space-y-3">
                   <div>
-                    <p className="font-semibold text-white">{displayName}</p>
-                    <p className="text-xs text-slate-400">{user.email}</p>
+                    <p className="font-semibold text-[#f5f5f3]">{displayName}</p>
+                    <p className="text-xs text-[#8f918d]">{user.email}</p>
                   </div>
 
                   <Link
                     href="/analizlerim"
                     onClick={() => setIsOpen(false)}
-                    className="block w-full rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-center text-sm font-semibold text-emerald-300"
+                    className="block w-full rounded-xl border border-[#c8a96a]/25 bg-[#c8a96a]/[0.07] px-4 py-3 text-center text-sm font-semibold text-[#d6b77b]"
                   >
                     Analizlerim
                   </Link>
@@ -175,7 +176,7 @@ export default function Navbar({ user }: NavbarProps) {
                   <Link
                     href="/login"
                     onClick={() => setIsOpen(false)}
-                    className="rounded-xl border border-slate-600/40 px-4 py-3 text-center text-sm font-semibold text-slate-200"
+                    className="rounded-xl border border-white/[0.10] px-4 py-3 text-center text-sm font-semibold text-[#d5d5d1]"
                   >
                     Giriş Yap
                   </Link>
@@ -183,7 +184,7 @@ export default function Navbar({ user }: NavbarProps) {
                   <Link
                     href="/register"
                     onClick={() => setIsOpen(false)}
-                    className="rounded-xl bg-emerald-500 px-4 py-3 text-center text-sm font-bold text-slate-950"
+                    className="rounded-xl border border-[#c8a96a]/35 bg-gradient-to-r from-[#c8a96a] to-[#b9985a] px-4 py-3 text-center text-sm font-bold text-[#11100d]"
                   >
                     Kayıt Ol
                   </Link>

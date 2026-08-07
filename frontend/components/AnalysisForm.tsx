@@ -43,6 +43,7 @@ const initialManualForm: ManualFormData = {
 
 export default function AnalysisForm() {
   const [mode, setMode] = useState<AnalysisMode>("listing");
+  const [listingUrl, setListingUrl] = useState("");
   const [manualForm, setManualForm] =
     useState<ManualFormData>(initialManualForm);
   const [message, setMessage] = useState("");
@@ -93,6 +94,7 @@ export default function AnalysisForm() {
 
         setBrowserVehicle(vehicle);
         setBrowserComparables(comparables);
+        setListingUrl(vehicle.url?.trim() ?? "");
         setMode("listing");
         setMessage(
           `Eklentiden araç bilgileri ve ${comparables.length} emsal alındı.`
@@ -211,6 +213,7 @@ export default function AnalysisForm() {
     } else {
       requestBody = {
         source: "manual",
+        listingUrl: listingUrl.trim() || undefined,
         vehicle: {
           brand: manualForm.brand.trim(),
           model: manualForm.model.trim(),
@@ -230,7 +233,6 @@ export default function AnalysisForm() {
     try {
       const response = await fetch("/api/analyze", {
         method: "POST",
-        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -270,26 +272,25 @@ export default function AnalysisForm() {
 
   return (
     <div className="mx-auto mt-10 w-full max-w-4xl">
-      <div className="glass-card mb-5 grid grid-cols-2 rounded-2xl p-1.5 shadow-2xl shadow-slate-950/20">
+      <div className="mb-5 grid grid-cols-2 rounded-2xl border border-white/[0.08] bg-[#111214] p-1.5 shadow-[0_18px_60px_rgba(0,0,0,0.28)]">
         <button
           type="button"
           onClick={() => changeMode("listing")}
           className={`rounded-xl px-3 py-3 text-xs font-semibold transition sm:px-4 sm:text-sm ${
             mode === "listing"
-              ? "primary-glow bg-gradient-to-r from-emerald-400 to-emerald-500 text-slate-950"
+              ? "border border-[#c8a96a]/35 bg-gradient-to-r from-[#c8a96a] to-[#b9985a] text-[#11100d] shadow-[0_12px_40px_rgba(200,169,106,0.16)]"
               : "text-slate-300 hover:text-white"
           }`}
         >
           Uzantı ile Aktar
         </button>
 
-
         <button
           type="button"
           onClick={() => changeMode("manual")}
-          className={`rounded-xl px-2 py-3 text-xs font-semibold transition sm:px-4 sm:text-sm ${
+          className={`rounded-xl px-3 py-3 text-xs font-semibold transition sm:px-4 sm:text-sm ${
             mode === "manual"
-              ? "primary-glow bg-gradient-to-r from-emerald-400 to-emerald-500 text-slate-950"
+              ? "border border-[#c8a96a]/35 bg-gradient-to-r from-[#c8a96a] to-[#b9985a] text-[#11100d] shadow-[0_12px_40px_rgba(200,169,106,0.16)]"
               : "text-slate-300 hover:text-white"
           }`}
         >
@@ -299,11 +300,11 @@ export default function AnalysisForm() {
 
       <form onSubmit={handleSubmit}>
         {mode === "listing" ? (
-          <div className="glass-card rounded-3xl p-5 sm:p-6">
+          <div className="rounded-3xl border border-white/[0.08] bg-[#101113] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:p-6">
             {browserVehicle ? (
               <>
-                <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-4">
-                  <p className="text-sm font-semibold text-emerald-300">
+                <div className="rounded-2xl border border-[#c8a96a]/20 bg-[#c8a96a]/[0.06] p-4">
+                  <p className="text-sm font-semibold text-[#d6b77b]">
                     İlan uzantıdan başarıyla aktarıldı
                   </p>
 
@@ -316,25 +317,30 @@ export default function AnalysisForm() {
                     {browserComparables.length} gerçek emsal alındı.
                   </p>
 
+                  {listingUrl && (
+                    <p className="mt-3 truncate text-xs text-slate-500">
+                      {listingUrl}
+                    </p>
+                  )}
                 </div>
 
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="primary-glow mt-4 w-full rounded-2xl bg-gradient-to-r from-emerald-400 to-emerald-500 px-6 py-4 font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:from-emerald-300 hover:to-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="mt-4 w-full rounded-2xl border border-[#c8a96a]/35 bg-gradient-to-r from-[#c8a96a] to-[#b9985a] px-6 py-4 font-semibold text-[#11100d] shadow-[0_14px_45px_rgba(200,169,106,0.14)] transition hover:-translate-y-0.5 hover:from-[#d6b77b] hover:to-[#c8a96a] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isLoading ? "Analiz Ediliyor..." : "Aktarılan İlanı Analiz Et"}
                 </button>
               </>
             ) : (
-              <div className="rounded-2xl border border-slate-500/30 bg-slate-950/35 p-5 text-left">
+              <div className="rounded-2xl border border-white/[0.08] bg-[#0d0e10] p-5 text-left">
                 <p className="font-semibold text-white">
                   İlan linkini buraya yapıştırmana gerek yok
                 </p>
 
                 <p className="mt-2 text-sm leading-6 text-slate-300">
                   Sahibinden ilanını aç, CarVision AI uzantısına tıkla ve
-                  <span className="font-semibold text-emerald-300">
+                  <span className="font-semibold text-[#d6b77b]">
                     {" "}Aktar
                   </span>
                   {" "}butonunu kullan. Araç bilgileri ve gerçek emsaller
@@ -342,13 +348,13 @@ export default function AnalysisForm() {
                 </p>
 
                 <div className="mt-4 grid gap-2 text-sm text-slate-400 sm:grid-cols-3">
-                  <div className="rounded-xl border border-white/5 bg-white/[0.03] p-3">
+                  <div className="rounded-xl border border-white/[0.06] bg-white/[0.025] p-3">
                     1. İlanı aç
                   </div>
-                  <div className="rounded-xl border border-white/5 bg-white/[0.03] p-3">
+                  <div className="rounded-xl border border-white/[0.06] bg-white/[0.025] p-3">
                     2. Uzantıya tıkla
                   </div>
-                  <div className="rounded-xl border border-white/5 bg-white/[0.03] p-3">
+                  <div className="rounded-xl border border-white/[0.06] bg-white/[0.025] p-3">
                     3. Aktar butonuna bas
                   </div>
                 </div>
@@ -356,7 +362,7 @@ export default function AnalysisForm() {
                 <button
                   type="button"
                   onClick={() => changeMode("manual")}
-                  className="mt-5 text-sm font-semibold text-emerald-300 transition hover:text-emerald-200"
+                  className="mt-5 text-sm font-semibold text-[#d6b77b] transition hover:text-emerald-200"
                 >
                   Uzantı kullanmadan manuel giriş yap
                 </button>
@@ -364,7 +370,7 @@ export default function AnalysisForm() {
             )}
           </div>
         ) : (
-          <div className="glass-card rounded-3xl p-6">
+          <div className="rounded-3xl border border-white/[0.08] bg-[#101113] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <FormInput
                 label="Marka"
@@ -441,14 +447,14 @@ export default function AnalysisForm() {
                 placeholder="Bakım, hasar, değişen, boya ve diğer araç bilgileri..."
                 rows={5}
                 disabled={isLoading}
-                className="mt-2 w-full resize-none rounded-xl border border-slate-500/35 bg-slate-950/45 px-4 py-3 text-white outline-none transition focus:border-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-2 w-full resize-none rounded-xl border border-slate-500/35 bg-slate-950/45 px-4 py-3 text-white outline-none transition focus:border-[#c8a96a]/60 focus:ring-1 focus:ring-[#c8a96a]/15 disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="primary-glow mt-5 w-full rounded-2xl bg-gradient-to-r from-emerald-400 to-emerald-500 px-8 py-4 font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:from-emerald-300 hover:to-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-5 w-full rounded-2xl border border-[#c8a96a]/35 bg-gradient-to-r from-[#c8a96a] to-[#b9985a] px-8 py-4 font-semibold text-[#11100d] shadow-[0_14px_45px_rgba(200,169,106,0.14)] transition hover:-translate-y-0.5 hover:from-[#d6b77b] hover:to-[#c8a96a] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLoading ? "Analiz Ediliyor..." : "Araç Bilgilerini Analiz Et"}
             </button>
@@ -457,10 +463,10 @@ export default function AnalysisForm() {
       </form>
 
       {isLoading && (
-        <div className="glass-card mt-6 overflow-hidden rounded-3xl p-5">
+        <div className="mt-6 overflow-hidden rounded-3xl border border-white/[0.08] bg-[#101113] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="font-semibold text-emerald-300">
+              <p className="font-semibold text-[#d6b77b]">
                 Araç analiz ediliyor
               </p>
 
@@ -469,11 +475,11 @@ export default function AnalysisForm() {
               </p>
             </div>
 
-            <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-600/40 border-t-emerald-400" />
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-white/10 border-t-[#c8a96a]" />
           </div>
 
           <div className="mt-5 h-2 overflow-hidden rounded-full bg-slate-700/50">
-            <div className="h-full w-2/3 animate-pulse rounded-full bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400" />
+            <div className="h-full w-2/3 animate-pulse rounded-full bg-gradient-to-r from-[#b9985a] via-[#d6b77b] to-[#f0d59b]" />
           </div>
 
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -485,9 +491,9 @@ export default function AnalysisForm() {
             ].map((step) => (
               <div
                 key={step}
-                className="glass-card flex items-center gap-3 rounded-2xl px-4 py-3 text-sm text-slate-300"
+                className="flex items-center gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.025] px-4 py-3 text-sm text-[#b5b5b0]"
               >
-                <span className="animate-pulse-soft h-2 w-2 rounded-full bg-emerald-400" />
+                <span className="animate-pulse-soft h-2 w-2 rounded-full bg-[#c8a96a]" />
                 <span>{step}</span>
               </div>
             ))}
@@ -502,7 +508,7 @@ export default function AnalysisForm() {
                 ? "border-amber-400/20 bg-amber-400/10 text-amber-200"
                 : errorCode
                   ? "border-rose-400/20 bg-rose-400/10 text-rose-200"
-                  : "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
+                  : "border-emerald-400/20 bg-[#c8a96a]/10 text-emerald-200"
             }`}
           >
             {message}
@@ -545,7 +551,7 @@ function FormInput({
         disabled={false}
         required
         min={type === "number" ? 0 : undefined}
-        className="mt-2 w-full rounded-xl border border-slate-500/35 bg-slate-950/45 px-4 py-3 text-white outline-none transition focus:border-emerald-500"
+        className="mt-2 w-full rounded-xl border border-slate-500/35 bg-slate-950/45 px-4 py-3 text-white outline-none transition focus:border-[#c8a96a]/60 focus:ring-1 focus:ring-[#c8a96a]/15"
       />
     </label>
   );
