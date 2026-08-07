@@ -92,13 +92,13 @@ export default async function AdminAnalysesPage({
         purchase_recommendation,
         created_at
       `,
-      { count: "exact" }
+      { count: "exact" },
     )
     .order("created_at", { ascending: false });
 
   if (query) {
     analysesQuery = analysesQuery.or(
-      `vehicle_brand.ilike.%${query}%,vehicle_model.ilike.%${query}%,vehicle_city.ilike.%${query}%`
+      `vehicle_brand.ilike.%${query}%,vehicle_model.ilike.%${query}%,vehicle_city.ilike.%${query}%`,
     );
   }
 
@@ -119,22 +119,22 @@ export default async function AdminAnalysesPage({
     <main>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-400">
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#c8a96a]">
             Analiz Yönetimi
           </p>
 
-          <h1 className="mt-2 text-3xl font-bold">
+          <h1 className="mt-3 text-3xl font-semibold tracking-[-0.035em] text-[#f5f5f3]">
             Tüm Analizler
           </h1>
 
-          <p className="mt-2 text-slate-400">
+          <p className="mt-2 text-[#8f918d]">
             Sistemde kayıtlı araç analizlerini görüntüle ve incele.
           </p>
         </div>
 
         <Link
           href="/admin"
-          className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-semibold text-slate-300 transition hover:border-emerald-400/30 hover:text-white"
+          className="rounded-xl border border-white/[0.08] bg-white/[0.025] px-4 py-2.5 text-sm font-semibold text-[#c7c7c3] transition hover:border-[#c8a96a]/30 hover:text-[#e2c88f]"
         >
           ← Dashboard
         </Link>
@@ -142,19 +142,17 @@ export default async function AdminAnalysesPage({
 
       <form
         method="GET"
-        className="mt-8 grid gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 md:grid-cols-[minmax(0,1fr)_220px_auto]"
+        className="mt-8 grid gap-3 rounded-[20px] border border-white/[0.08] bg-[#101113] p-4 shadow-[0_20px_55px_rgba(0,0,0,0.2)] md:grid-cols-[minmax(0,1fr)_220px_auto]"
       >
         <label className="block">
-          <span className="sr-only">
-            Marka, model veya şehir ara
-          </span>
+          <span className="sr-only">Marka, model veya şehir ara</span>
 
           <input
             type="search"
             name="q"
             defaultValue={query}
             placeholder="Marka, model veya şehir ara..."
-            className="h-11 w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-400/40"
+            className="h-11 w-full rounded-xl border border-white/[0.08] bg-[#0b0c0e] px-4 text-sm text-[#f5f5f3] outline-none transition placeholder:text-[#5f605c] focus:border-[#c8a96a]/40 focus:ring-1 focus:ring-[#c8a96a]/10"
           />
         </label>
 
@@ -164,20 +162,18 @@ export default async function AdminAnalysesPage({
           <select
             name="source"
             defaultValue={source}
-            className="h-11 w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 text-sm text-white outline-none transition focus:border-emerald-400/40"
+            className="h-11 w-full rounded-xl border border-white/[0.08] bg-[#0b0c0e] px-4 text-sm text-[#f5f5f3] outline-none transition focus:border-[#c8a96a]/40"
           >
             <option value="">Tüm kaynaklar</option>
             <option value="manual">Manuel</option>
-            <option value="browser-extension">
-              Tarayıcı uzantısı
-            </option>
+            <option value="browser-extension">Tarayıcı uzantısı</option>
           </select>
         </label>
 
         <div className="flex gap-2">
           <button
             type="submit"
-            className="h-11 flex-1 rounded-xl bg-emerald-500 px-5 text-sm font-bold text-slate-950 transition hover:bg-emerald-400"
+            className="h-11 flex-1 rounded-xl border border-[#c8a96a]/35 bg-gradient-to-r from-[#c8a96a] to-[#b9985a] px-5 text-sm font-bold text-[#11100d] transition hover:from-[#d6b77b] hover:to-[#c8a96a]"
           >
             Filtrele
           </button>
@@ -185,7 +181,7 @@ export default async function AdminAnalysesPage({
           {hasFilters && (
             <Link
               href="/admin/analyses"
-              className="inline-flex h-11 items-center justify-center rounded-xl border border-white/10 px-4 text-sm font-semibold text-slate-300 transition hover:border-red-400/30 hover:text-red-300"
+              className="inline-flex h-11 items-center justify-center rounded-xl border border-white/[0.08] px-4 text-sm font-semibold text-[#c7c7c3] transition hover:border-red-400/30 hover:text-red-300"
             >
               Temizle
             </Link>
@@ -193,15 +189,18 @@ export default async function AdminAnalysesPage({
         </div>
       </form>
 
-      <section className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-5 py-4">
-          <p className="text-sm text-slate-400">
+      <section className="mt-4 overflow-hidden rounded-[22px] border border-white/[0.08] bg-[#101113] shadow-[0_24px_75px_rgba(0,0,0,0.24)]">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.07] px-5 py-4">
+          <p className="text-sm text-[#8f918d]">
             {hasFilters ? "Filtrelenen" : "Toplam"}{" "}
-            {count ?? analyses.length} analiz
+            <span className="font-semibold text-[#d6b77b]">
+              {count ?? analyses.length}
+            </span>{" "}
+            analiz
           </p>
 
           {hasFilters && (
-            <p className="text-xs text-emerald-400">
+            <p className="text-xs text-[#d6b77b]">
               Aktif filtre uygulanıyor
             </p>
           )}
@@ -209,7 +208,7 @@ export default async function AdminAnalysesPage({
 
         <div className="overflow-x-auto">
           <table className="min-w-full text-left text-sm">
-            <thead className="bg-white/[0.03] text-xs uppercase tracking-wider text-slate-500">
+            <thead className="bg-white/[0.025] text-[11px] uppercase tracking-[0.12em] text-[#6f706c]">
               <tr>
                 <th className="px-5 py-4">Araç</th>
                 <th className="px-5 py-4">Yıl</th>
@@ -225,54 +224,53 @@ export default async function AdminAnalysesPage({
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-white/10">
+            <tbody className="divide-y divide-white/[0.07]">
               {analyses.map((analysis) => (
                 <tr
                   key={analysis.id}
-                  className="hover:bg-white/[0.02]"
+                  className="transition hover:bg-white/[0.018]"
                 >
-                  <td className="whitespace-nowrap px-5 py-4 font-semibold text-white">
-                    {analysis.vehicle_brand}{" "}
-                    {analysis.vehicle_model}
+                  <td className="whitespace-nowrap px-5 py-4 font-semibold text-[#f5f5f3]">
+                    {analysis.vehicle_brand} {analysis.vehicle_model}
                   </td>
 
-                  <td className="px-5 py-4 text-slate-300">
+                  <td className="px-5 py-4 text-[#b6b6b2]">
                     {analysis.vehicle_year}
                   </td>
 
-                  <td className="whitespace-nowrap px-5 py-4 text-slate-300">
+                  <td className="whitespace-nowrap px-5 py-4 text-[#b6b6b2]">
                     {formatNumber(analysis.vehicle_mileage)} km
                   </td>
 
-                  <td className="whitespace-nowrap px-5 py-4 text-slate-300">
+                  <td className="whitespace-nowrap px-5 py-4 text-[#b6b6b2]">
                     {formatCurrency(analysis.vehicle_price)}
                   </td>
 
-                  <td className="px-5 py-4 text-slate-300">
+                  <td className="px-5 py-4 text-[#b6b6b2]">
                     {analysis.vehicle_city}
                   </td>
 
-                  <td className="px-5 py-4 font-bold text-emerald-300">
+                  <td className="px-5 py-4 font-bold text-[#d6b77b]">
                     {analysis.score}/100
                   </td>
 
-                  <td className="px-5 py-4 text-slate-300">
+                  <td className="px-5 py-4 text-[#b6b6b2]">
                     %{analysis.analysis_confidence}
                   </td>
 
-                  <td className="whitespace-nowrap px-5 py-4 text-slate-300">
+                  <td className="whitespace-nowrap px-5 py-4 text-[#b6b6b2]">
                     {recommendationLabels[
                       analysis.purchase_recommendation
                     ] ?? analysis.purchase_recommendation}
                   </td>
 
-                  <td className="whitespace-nowrap px-5 py-4 text-slate-400">
+                  <td className="whitespace-nowrap px-5 py-4 text-[#777873]">
                     {analysis.source === "browser-extension"
                       ? "Uzantı"
                       : "Manuel"}
                   </td>
 
-                  <td className="whitespace-nowrap px-5 py-4 text-slate-400">
+                  <td className="whitespace-nowrap px-5 py-4 text-[#777873]">
                     {formatDate(analysis.created_at)}
                   </td>
 
@@ -282,12 +280,12 @@ export default async function AdminAnalysesPage({
                         href={analysis.listing_url}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-sm font-semibold text-emerald-400 hover:text-emerald-300"
+                        className="text-sm font-semibold text-[#d6b77b] transition hover:text-[#e2c88f]"
                       >
                         İlanı Aç
                       </a>
                     ) : (
-                      <span className="text-xs text-slate-600">
+                      <span className="text-xs text-[#555651]">
                         İlan yok
                       </span>
                     )}
@@ -299,7 +297,7 @@ export default async function AdminAnalysesPage({
                 <tr>
                   <td
                     colSpan={11}
-                    className="px-5 py-12 text-center text-slate-500"
+                    className="px-5 py-12 text-center text-[#666762]"
                   >
                     {hasFilters
                       ? "Filtrelere uygun analiz bulunamadı."
