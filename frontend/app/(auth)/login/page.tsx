@@ -20,6 +20,7 @@ export default async function LoginPage({
   searchParams,
 }: LoginPageProps) {
   const { error, success } = await searchParams;
+
   return (
     <AuthShell
       title="Tekrar hoş geldiniz"
@@ -34,7 +35,7 @@ export default async function LoginPage({
         <div>
           <label
             htmlFor="email"
-            className="mb-2 block text-sm font-semibold text-slate-200"
+            className="mb-2 block text-sm font-semibold text-[#d5d5d1]"
           >
             E-posta adresi
           </label>
@@ -46,7 +47,7 @@ export default async function LoginPage({
             autoComplete="email"
             required
             placeholder="ornek@email.com"
-            className="w-full rounded-2xl border border-slate-600/40 bg-slate-950/40 px-4 py-3.5 text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-400/60 focus:ring-4 focus:ring-emerald-400/10"
+            className="w-full rounded-2xl border border-white/[0.10] bg-[#0d0e10] px-4 py-3.5 text-[#f5f5f3] outline-none transition placeholder:text-[#62635f] focus:border-[#c8a96a]/60 focus:ring-4 focus:ring-[#c8a96a]/10"
           />
         </div>
 
@@ -54,14 +55,14 @@ export default async function LoginPage({
           <div className="mb-2 flex items-center justify-between gap-4">
             <label
               htmlFor="password"
-              className="block text-sm font-semibold text-slate-200"
+              className="block text-sm font-semibold text-[#d5d5d1]"
             >
               Şifre
             </label>
 
             <Link
               href="/forgot-password"
-              className="text-sm font-semibold text-emerald-400 transition hover:text-emerald-300"
+              className="text-sm font-semibold text-[#d6b77b] transition hover:text-[#e2c88f]"
             >
               Şifremi unuttum
             </Link>
@@ -74,13 +75,13 @@ export default async function LoginPage({
             autoComplete="current-password"
             required
             placeholder="Şifrenizi girin"
-            className="w-full rounded-2xl border border-slate-600/40 bg-slate-950/40 px-4 py-3.5 text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-400/60 focus:ring-4 focus:ring-emerald-400/10"
+            className="w-full rounded-2xl border border-white/[0.10] bg-[#0d0e10] px-4 py-3.5 text-[#f5f5f3] outline-none transition placeholder:text-[#62635f] focus:border-[#c8a96a]/60 focus:ring-4 focus:ring-[#c8a96a]/10"
           />
         </div>
 
         <button
           type="submit"
-          className="primary-glow w-full rounded-2xl bg-gradient-to-r from-emerald-400 to-emerald-500 px-5 py-3.5 font-black text-slate-950 transition hover:-translate-y-0.5 hover:from-emerald-300 hover:to-emerald-400"
+          className="w-full rounded-2xl border border-[#c8a96a]/35 bg-gradient-to-r from-[#c8a96a] to-[#b9985a] px-5 py-3.5 font-bold text-[#11100d] shadow-[0_14px_45px_rgba(200,169,106,0.14)] transition hover:-translate-y-0.5 hover:from-[#d6b77b] hover:to-[#c8a96a]"
         >
           Giriş Yap
         </button>
