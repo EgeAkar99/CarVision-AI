@@ -38,10 +38,17 @@ export async function login(formData: FormData) {
   });
 
   if (error) {
+    console.error("Supabase giriş hatası:", {
+      name: error.name,
+      message: error.message,
+      status: error.status,
+      code: error.code,
+    });
+
     redirectWithMessage(
       "/login",
       "error",
-      "E-posta adresi veya şifre hatalı.",
+      `Hata: ${error.message}`,
     );
   }
 
@@ -116,12 +123,12 @@ export async function register(formData: FormData) {
   });
 
   if (error) {
-     console.error("Supabase kayıt hatası:", error);
+    console.error("Supabase kayıt hatası:", error);
 
-     redirectWithMessage(
-     "/register",
-     "error",
-     `Hata: ${error.message}`,
+    redirectWithMessage(
+      "/register",
+      "error",
+      `Hata: ${error.message}`,
     );
   }
 
